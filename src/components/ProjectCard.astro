@@ -1,0 +1,111 @@
+---
+import AnimatedButton from '@/components/AnimatedButton.astro'
+import BannerImage from '@/components/BannerImage.astro'
+import { ICON_MAP, SITE } from '@/consts'
+import { Icon } from 'astro-icon/components'
+import type { CollectionEntry } from 'astro:content'
+
+interface Props {
+  entry: CollectionEntry<'projects'>
+}
+
+const { entry } = Astro.props
+---
+
+<div
+  id={entry.id}
+  class="flex scroll-mt-20 flex-col overflow-hidden rounded-xl border transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-lg sm:flex-row sm:items-stretch"
+>
+  <div
+    class="border-border w-full overflow-hidden border-b sm:max-w-3xs sm:shrink-0 sm:self-stretch sm:border-r sm:border-b-0"
+  >
+    <BannerImage
+      src={entry.data.image}
+      defaultSrc={SITE.defaultProjectBanner}
+      alt={entry.data.name}
+      width={1200}
+      height={630}
+      class="h-full w-full object-cover"
+    />
+  </div>
+  <div class="flex grow flex-col p-4">
+    <div class="flex grow flex-col gap-4">
+      <div>
+        <h3 class="mb-1 text-xl font-bold">
+          {entry.data.name}
+        </h3>
+        <p class="text-muted-foreground mb-2 text-sm">
+          {entry.data.description}
+        </p>
+        {
+          entry.data.tags && (
+            <div class="flex flex-wrap gap-2">
+              {entry.data.tags.map((tag: string) => {
+                const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
+                const iconName = typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon
+                const iconColor = typeof iconEntry === 'object' && iconEntry ? iconEntry.color : undefined
+                return (
+                  <span class="text-muted-foreground bg-muted/30 flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs">
+                    <Icon
+                      name={iconName || 'lucide:code'}
+                      class="size-2.5"
+                      style={iconColor ? `color: ${iconColor}` : undefined}
+                    />
+                    {tag}
+                  </span>
+                )
+              })}
+            </div>
+          )
+        }
+      </div>
+    </div>
+    {
+      (entry.data.sourceCodeLink ||
+        entry.data.siteLink ||
+        entry.data.relatedBlogsLink) && (
+        <div class="mt-4 flex flex-wrap gap-2 border-t pt-4">
+          {entry.data.sourceCodeLink && (
+            <AnimatedButton
+              href={entry.data.sourceCodeLink}
+              external
+              variant="outline"
+              size="sm"
+              class="w-full flex-1 grow justify-center"
+              icon="lucide:code"
+              iconPosition="left"
+            >
+              Source Code
+            </AnimatedButton>
+          )}
+          {entry.data.relatedBlogsLink && (
+            <AnimatedButton
+              href={entry.data.relatedBlogsLink}
+              variant="outline"
+              size="sm"
+              class="bg-accent hover:bg-accent/80 hover:text-background text-background dark:hover:bg-accent/80 w-full flex-1 grow justify-center"
+              class="w-full flex-1 grow justify-center"
+              icon="lucide:book-open"
+              iconPosition="left"
+            >
+              Related Blogs
+            </AnimatedButton>
+          )}
+          {entry.data.siteLink && (
+            <AnimatedButton
+              href={entry.data.siteLink}
+              external
+              variant="default"
+              size="sm"
+              class="w-full flex-1 grow justify-center"
+              icon="lucide:arrow-right"
+              iconPosition="right"
+            >
+              Visit Site
+            </AnimatedButton>
+          )}
+        </div>
+      )
+    }
+  </div>
+</div>

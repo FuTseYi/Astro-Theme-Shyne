@@ -1,0 +1,31 @@
+---
+import Link from '@/components/Link.astro'
+import { ICON_MAP } from '@/consts'
+import type { SocialLink } from '@/types'
+import { Icon } from 'astro-icon/components'
+
+interface Props {
+  links: SocialLink[]
+}
+
+const { links } = Astro.props
+---
+
+<ul class="flex flex-wrap gap-3" role="list">
+  {
+    links.map(({ href, label }) => {
+      const iconEntry = ICON_MAP[label as keyof typeof ICON_MAP]
+      const iconName = typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon
+      return (
+        <li>
+          <Link href={href} aria-label={label} title={label} external>
+            <Icon
+              name={iconName || 'lucide:message-circle-question'}
+              class="text-muted-foreground hover:text-foreground size-5 transition-colors"
+            />
+          </Link>
+        </li>
+      )
+    })
+  }
+</ul>
