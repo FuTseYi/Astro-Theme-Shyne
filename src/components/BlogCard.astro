@@ -1,0 +1,87 @@
+---
+import BannerImage from '@/components/BannerImage.astro'
+import { Badge } from '@/components/ui/badge'
+import { ICON_MAP, SITE } from '@/consts'
+import {
+  getCombinedReadingTime,
+  getSubpostCount,
+  isSubpost,
+} from '@/lib/data-utils'
+import { formatDate } from '@/lib/utils'
+import { Icon } from 'astro-icon/components'
+import type { CollectionEntry } from 'astro:content'
+import Link from './Link.astro'
+
+interface Props {
+  entry: CollectionEntry<'blog'>
+}
+
+const { entry } = Astro.props
+const formattedDate = formatDate(entry.data.date)
+const readTime = await getCombinedReadingTime(entry.id)
+const subpostCount = !isSubpost(entry.id) ? await getSubpostCount(entry.id) : 0
+---
+
+<div
+  class="hover:bg-muted/50 overflow-hidden rounded-xl border transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-lg"
+>
+  <Link
+    href={`/${entry.collection}/${entry.id}`}
+    class="flex flex-col sm:flex-row sm:items-stretch"
+  >
+    <div
+      class="border-border w-full overflow-hidden border-b sm:max-w-3xs sm:shrink-0 sm:self-stretch sm:border-r sm:border-b-0"
+    >
+      <BannerImage
+        src={entry.data.image}
+        defaultSrc={SITE.defaultPostBanner}
+        alt={entry.data.title}
+        width={1200}
+        height={630}
+        class="h-full w-full object-cover"
+      />
+    </div>
+
+    <div class="flex grow flex-col p-4">
+      <h3 class="mb-1 text-xl font-bold">{entry.data.title}</h3>
+      <p class="text-muted-foreground mb-2 text-sm">{entry.data.description}</p>
+
+      <p class="text-muted-foreground/60 mb-6 text-xs">
+        <span>{formattedDate}</span> &nbsp;•&nbsp; {readTime}
+        {
+          subpostCount > 0 && (
+            <>
+              &nbsp;•&nbsp; {subpostCount}{' '}
+              {subpostCount === 1 ? ' subpost' : ' subposts'}
+            </>
+          )
+        }
+      </p>
+
+      {
+        entry.data.tags && (
+          <div class="flex flex-wrap gap-2">
+            {entry.data.tags.map((tag) => {
+              const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
+              const iconName = (typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon) || 'lucide:hash'
+              const iconColor = typeof iconEntry === 'object' && iconEntry ? iconEntry.color : undefined
+              return (
+                <Badge
+                  variant="muted"
+                  className="flex bg-muted/30 border border-border items-center gap-x-1"
+                >
+                  <Icon
+                    name={iconName}
+                    class="size-3"
+                    style={iconColor ? `color: ${iconColor}` : undefined}
+                  />
+                  {tag}
+                </Badge>
+              )
+            })}
+          </div>
+        )
+      }
+    </div>
+  </Link>
+</div>
