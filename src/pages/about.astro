@@ -1,0 +1,90 @@
+---
+// Components
+import Breadcrumbs from '@/components/Breadcrumbs.astro'
+import PageHead from '@/components/PageHead.astro'
+
+// Layouts
+import Layout from '@/layouts/Layout.astro'
+---
+
+<!-- OUTLINE (basically it should be a ME page)
+  - Hero Section With SubSection and text
+  - Image Gallery of Me (bento box style)
+-->
+<Layout class="max-w-3xl">
+  <PageHead slot="head" title="About" />
+  <Breadcrumbs items={[{ label: 'About', icon: 'lucide:info' }]} />
+  <div class="about-page flex flex-col gap-y-8">
+    <!-- Header section with profile photos -->
+    <section
+      class="bg-grid-pattern flex flex-col items-center gap-6 p-6 pb-0 text-center"
+    >
+      <div class="relative flex items-center justify-center">
+        <!-- one Profile -->
+        <div
+          class="group relative z-0 -rotate-2 transition-transform duration-300 hover:scale-105 hover:rotate-[-4deg]"
+        >
+          <img
+            src="/static/common/munnar-paperframe1.png"
+            alt="Sedhu Madhav"
+            class="group-hover:shadow-foreground/15 relative block h-auto w-48 shadow-lg transition-shadow duration-300 group-hover:shadow-xl"
+          />
+          <p
+            class="font-caveat text-foreground dark:text-background text-md absolute -bottom-[-0.5em] left-1/2 -translate-x-1/2 whitespace-nowrap"
+          >
+            me again :)
+          </p>
+        </div>
+        <!-- two Profile -->
+        <div
+          class="group relative z-10 -ml-8 rotate-2 transition-transform duration-300 hover:scale-105 hover:rotate-4"
+        >
+          <img
+            src="/static/common/infinull-paperframe.png"
+            alt="Infinull logo"
+            class="group-hover:shadow-foreground/15 relative block h-auto w-32 translate-y-14 shadow-lg transition-shadow duration-300 group-hover:shadow-xl"
+          />
+          <p
+            class="font-caveat text-foreground dark:text-background absolute -bottom-[4.25em] left-1/2 -translate-x-1/2 text-xs whitespace-nowrap"
+          >
+            the other me
+          </p>
+        </div>
+      </div>
+      <h1 class="font-bon-vivant pt-4 text-8xl font-bold">
+        who's <br />
+        <span class="text-accent -mt-10 block font-sans text-7xl font-black"
+          >Shyne?</span
+        >
+      </h1>
+    </section>
+
+    <!-- About Me Section -->
+    <section>
+      <div>
+        <p class="prose prose-sm text-muted-foreground max-w-none">test</p>
+      </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section>
+      <h2 class="font-bon-vivant text-accent mb-4 text-5xl font-semibold">
+        skills, <span class="text-foreground font-sans text-4xl">you ask?</span>
+      </h2>
+
+      <p class="prose prose-sm text-muted-foreground max-w-3xl leading-relaxed">
+        test
+      </p>
+    </section>
+
+    <!-- Interests Section -->
+    <section>
+      <h2 class="text-accent font-bon-vivant mb-4 text-6xl font-semibold">
+        <span class="relative -top-1 inline-block">hobbies</span>
+        <span class="text-foreground font-sans text-4xl">& stuff</span>
+      </h2>
+
+      <p class="text-muted-foreground max-w-3xl leading-relaxed">test</p>
+    </section>
+  </div>
+</Layout>
