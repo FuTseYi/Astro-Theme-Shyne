@@ -1,0 +1,170 @@
+---
+// LoadingBar component for showing page navigation progress
+---
+
+<div
+  id="loading-bar"
+  class="pointer-events-none fixed top-0 right-0 left-0 z-9999 h-0.5 opacity-0 transition-opacity duration-200 ease-out [&.loading]:opacity-100"
+>
+  <div
+    id="loading-bar-inner"
+    class="bg-accent transition-width h-full w-0 duration-200 [&.completing]:w-full [&.completing]:duration-300 [&.completing]:ease-in"
+  >
+  </div>
+</div>
+
+<style>
+  #loading-bar-inner {
+    box-shadow:
+      0 0 10px var(--accent),
+      0 0 5px var(--accent);
+  }
+</style>
+
+<script>
+  // Loading Bar Configuration Constants
+  const PROGRESS_INTERVAL_MS = 200
+  const COMPLETION_DELAY_MS = 300
+  const INITIAL_PROGRESS = 10
+  const MAX_PROGRESS = 90
+  const PROGRESS_INCREMENT = 15
+
+  // Logic
+  let progressInterval: ReturnType<typeof setInterval> | null = null
+  let currentProgress = 0
+
+  function getElements() {
+    const loadingBar = document.getElementById('loading-bar')
+    const loadingBarInner = document.getElementById('loading-bar-inner')
+    return { loadingBar, loadingBarInner }
+  }
+
+  function resetProgress(loadingBarInner: HTMLElement) {
+    currentProgress = 0
+    loadingBarInner.style.width = '0%'
+  }
+
+  function clearProgressInterval() {
+    if (progressInterval) {
+      clearInterval(progressInterval)
+      progressInterval = null
+    }
+  }
+
+  function simulateProgress(loadingBarInner: HTMLElement) {
+    clearProgressInterval()
+
+    currentProgress = INITIAL_PROGRESS
+    loadingBarInner.style.width = `${INITIAL_PROGRESS}%`
+
+    progressInterval = setInterval(() => {
+      if (currentProgress < MAX_PROGRESS) {
+        currentProgress += Math.random() * PROGRESS_INCREMENT
+        if (currentProgress > MAX_PROGRESS) {
+          currentProgress = MAX_PROGRESS
+        }
+        loadingBarInner.style.width = `${currentProgress}%`
+      }
+    }, PROGRESS_INTERVAL_MS)
+  }
+
+  function showLoadingBar() {
+    const { loadingBar, loadingBarInner } = getElements()
+    if (!loadingBar || !loadingBarInner) return
+
+    resetProgress(loadingBarInner)
+    loadingBar.classList.remove('completing')
+    loadingBar.classList.add('loading')
+    simulateProgress(loadingBarInner)
+  }
+
+  function completeLoadingBar() {
+    const { loadingBar, loadingBarInner } = getElements()
+    if (!loadingBar || !loadingBarInner) return
+
+    clearProgressInterval()
+    loadingBarInner.style.width = '100%'
+    loadingBar.classList.remove('loading')
+    loadingBar.classList.add('completing')
+
+    setTimeout(() => {
+      const { loadingBar: bar } = getElements()
+      if (bar) {
+        bar.classList.remove('completing')
+        resetProgress(loadingBarInner)
+      }
+    }, COMPLETION_DELAY_MS)
+  }
+
+  function isExcludableRoute(url: URL) {
+    const pathname = url.pathname.toLowerCase()
+    const staticExtensions = ['.pdf', '.xml', '.json', '.txt', '.csv', '.zip']
+
+    const hasStaticExtension = staticExtensions.some((ext) =>
+      pathname.endsWith(ext)
+    )
+
+    return hasStaticExtension
+  }
+
+  function handleLinkClick(e: MouseEvent) {
+    const target = e.target as HTMLElement
+    const link = target.closest('a[href]') as HTMLAnchorElement
+
+    if (!link?.href) return
+
+    try {
+      const url = new URL(link.href)
+      const currentUrl = new URL(window.location.href)
+
+      // exclude some routes and static files
+      if (isExcludableRoute(url)) return
+
+      if (
+        url.origin === currentUrl.origin &&
+        url.pathname !== currentUrl.pathname
+      ) {
+        showLoadingBar()
+      }
+    } catch {
+      // invalid URL, ignore it
+    }
+  }
+
+  function setupEventListeners() {
+    // remove existing listeners to avoid duplicates
+    document.removeEventListener('click', handleLinkClick, true)
+    document.removeEventListener('astro:before-preparation', showLoadingBar)
+    document.removeEventListener('astro:before-swap', showLoadingBar)
+    document.removeEventListener('astro:page-load', completeLoadingBar)
+    document.removeEventListener('astro:after-swap', completeLoadingBar)
+
+    // add event listeners
+    document.addEventListener('click', handleLinkClick, true) // capture phase for early detection
+    document.addEventListener('astro:before-preparation', showLoadingBar)
+    document.addEventListener('astro:before-swap', showLoadingBar)
+    document.addEventListener('astro:page-load', completeLoadingBar)
+    document.addEventListener('astro:after-swap', completeLoadingBar)
+  }
+
+  function handleInitialLoad() {
+    if (document.readyState === 'loading') {
+      showLoadingBar()
+      const handleLoad = () => {
+        completeLoadingBar()
+        window.removeEventListener('load', handleLoad)
+      }
+      window.addEventListener('load', handleLoad)
+    }
+  }
+
+  function initLoadingBar() {
+    setupEventListeners()
+    handleInitialLoad()
+  }
+
+  // initialize loading bar and event listeners
+  initLoadingBar()
+  document.addEventListener('astro:page-load', initLoadingBar)
+  document.addEventListener('astro:after-swap', initLoadingBar)
+</script>
