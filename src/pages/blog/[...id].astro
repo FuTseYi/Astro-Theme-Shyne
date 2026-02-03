@@ -154,8 +154,14 @@ const tocSections = await getTOCSections(currentPostId)
               post.data.tags.length > 0 &&
               post.data.tags.map((tag) => {
                 const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
-                const iconName = typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon || 'lucide:hash'
-                const iconColor = typeof iconEntry === 'object' && iconEntry ? iconEntry.color : undefined
+                const iconName =
+                  typeof iconEntry === 'string'
+                    ? iconEntry
+                    : iconEntry?.icon || 'lucide:hash'
+                const iconColor =
+                  typeof iconEntry === 'object' && iconEntry
+                    ? iconEntry.color
+                    : undefined
                 return (
                   <a href={`/tags/${tag}`}>
                     <Badge
@@ -192,7 +198,7 @@ const tocSections = await getTOCSections(currentPostId)
       )
     }
 
-    <article class="prose col-start-2 max-w-none">
+    <article class="prose custom-md col-start-2 max-w-none">
       <Content />
     </article>
 
@@ -244,7 +250,7 @@ const tocSections = await getTOCSections(currentPostId)
 
           scrollToTopButton.classList.toggle(
             'hidden',
-            window.scrollY <= 300 || isFooterVisible
+            window.scrollY <= 300 || isFooterVisible,
           )
         })
       }

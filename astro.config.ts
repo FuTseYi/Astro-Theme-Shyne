@@ -13,6 +13,13 @@ import rehypeShiki from '@shikijs/rehype'
 import remarkEmoji from 'remark-emoji'
 import remarkMath from 'remark-math'
 
+// Markdown directive plugins
+import remarkDirective from 'remark-directive'
+import remarkGithubAdmonitionsToDirectives from 'remark-github-admonitions-to-directives'
+import rehypeComponents from 'rehype-components'
+import { parseDirectiveNode } from './src/plugins/remark-directive-rehype.js'
+import { AdmonitionComponent } from './src/plugins/rehype-component-admonition.mjs'
+
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
@@ -38,6 +45,24 @@ export default defineConfig({
 
   markdown: {
     syntaxHighlight: false,
+    remarkPlugins: [
+      remarkMath,
+      remarkEmoji,
+      [
+        remarkGithubAdmonitionsToDirectives,
+        {
+          mapping: {
+            NOTE: 'note',
+            TIP: 'tip',
+            IMPORTANT: 'important',
+            WARNING: 'warning',
+            CAUTION: 'caution',
+          },
+        },
+      ],
+      remarkDirective,
+      parseDirectiveNode,
+    ],
     rehypePlugins: [
       [
         rehypeExternalLinks,
@@ -48,6 +73,18 @@ export default defineConfig({
       ],
       rehypeHeadingIds,
       rehypeKatex,
+      [
+        rehypeComponents,
+        {
+          components: {
+            note: (x: any, y: any) => AdmonitionComponent(x, y, 'note'),
+            tip: (x: any, y: any) => AdmonitionComponent(x, y, 'tip'),
+            important: (x: any, y: any) => AdmonitionComponent(x, y, 'important'),
+            caution: (x: any, y: any) => AdmonitionComponent(x, y, 'caution'),
+            warning: (x: any, y: any) => AdmonitionComponent(x, y, 'warning'),
+          },
+        },
+      ],
       [
         rehypeExpressiveCode,
         {
@@ -106,6 +143,5 @@ export default defineConfig({
         },
       ],
     ],
-    remarkPlugins: [remarkMath, remarkEmoji],
   },
 })
