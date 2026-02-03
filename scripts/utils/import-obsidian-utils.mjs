@@ -9,7 +9,7 @@ const log = createLogger('import-obsidian-utils')
 // FILE UTILITIES
 // ============================================================================
 
-const MARKDOWN_EXTENSIONS = ['.md', '.mdx']
+const MARKDOWN_EXTENSIONS = ['.md']
 
 /**
  * converts a filename to a URL-friendly slug
@@ -23,7 +23,7 @@ export function slugify(name) {
 }
 
 /**
- * checks if a file is a markdown file (.md or .mdx)
+ * checks if a file is a markdown file (.md)
  */
 export function isMarkdownFile(filename) {
   return MARKDOWN_EXTENSIONS.some((ext) => filename.endsWith(ext))
@@ -311,7 +311,7 @@ export async function processImages(content, sourceDir, destDir) {
 }
 
 // ============================================================================
-// MDX UTILITIES
+// MARKDOWN UTILITIES
 // ============================================================================
 
 /**
@@ -325,9 +325,9 @@ function formatDate(date) {
 }
 
 /**
- * builds MDX content with formatted frontmatter
+ * builds markdown content with formatted frontmatter
  */
-export function buildMdxContent(body, frontmatter) {
+export function buildMarkdownContent(body, frontmatter) {
   const formatted = { ...frontmatter }
   if (formatted.date) {
     formatted.date = formatDate(formatted.date)

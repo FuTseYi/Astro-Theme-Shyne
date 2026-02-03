@@ -12,7 +12,7 @@
  *   - TARGET_DIR in .env file (target directory for converted files)
  *
  * features:
- *   - converts obsidian markdown to astro MDX format
+ *   - converts obsidian markdown to astro markdown format
  *   - processes frontmatter and normalizes tags
  *   - copies and processes images from obsidian attachments
  *   - handles multiple files with concurrency control
@@ -36,7 +36,7 @@ import {
   parseObsidianFrontMatter,
   processBannerImage,
   processImages,
-  buildMdxContent,
+  buildMarkdownContent,
 } from './utils/import-obsidian-utils.mjs'
 
 dotenv.config({ path: '.env' })
@@ -58,10 +58,10 @@ async function readNoteFile(filePath) {
 }
 
 /**
- * writes MDX file to destination directory
+ * writes markdown file to destination directory
  */
-async function writeMdxFile(destinationDir, content) {
-  const destPath = path.join(destinationDir, 'index.mdx')
+async function writeMarkdownFile(destinationDir, content) {
+  const destPath = path.join(destinationDir, 'index.md')
   await fs.writeFile(destPath, content)
 }
 
@@ -131,11 +131,11 @@ async function processNote(filePath, config) {
     )
     logImageResults(imageResult.results)
 
-    const finalContent = buildMdxContent(
+    const finalContent = buildMarkdownContent(
       imageResult.content,
       processedFrontmatter,
     )
-    await writeMdxFile(destinationDir, finalContent)
+    await writeMarkdownFile(destinationDir, finalContent)
 
     return { status: 'imported', filename, slug }
   } catch (error) {
@@ -193,7 +193,7 @@ function logImportResults(results) {
   const errors = results.filter((r) => r.status === 'error')
 
   imported.forEach((r) => {
-    log.success(`imported: '${r.filename}' → '${r.slug}/index.mdx'`)
+    log.success(`imported: '${r.filename}' → '${r.slug}/index.md'`)
   })
 
   skipped.forEach((r) => {
@@ -221,7 +221,7 @@ async function run() {
     validateEnvironment()
     const config = getEnvConfig()
 
-    log.info('starting import: obsidian → astro MDX blog')
+    log.info('starting import: obsidian → astro markdown blog')
 
     const files = await fs.readdir(config.sourceMarkdownDir)
     const markdownFiles = files.filter(isMarkdownFile)
