@@ -1,10 +1,15 @@
-import type { IconMap, SocialLink, Site } from '@/types'
+import type {
+  Favicon,
+  IconMap,
+  Site,
+  SocialLink,
+} from '@/types'
 
 export const SITE: Site = {
   title: 'Astro-Theme-Shyne',
   description:
     'astro-theme-Shyne is a opinionated, unstyled blogging template—built with Astro, Tailwind, and shadcn/ui.',
-  href: 'https://astro-theme-Shyne.vercel.app',
+  href: 'https://astro-theme-shyne.vercel.app',
   author: 'FuTseYi',
   locale: 'en-US',
   featuredPostCount: 2,
@@ -13,6 +18,13 @@ export const SITE: Site = {
   projectsPerPage: 3,
   defaultPostBanner: '/default/default-post-banner-1200x630.jpg',
   defaultProjectBanner: '/default/default-project-banner-1200x630.jpg'
+}
+
+export const FAVICON: Favicon = {
+  png: '/favicon/logo.png',
+  appleTouchIcon: '/favicon/logo.png',
+  appTitle: 'Astro-Theme-Shyne',
+  manifest: '/site.webmanifest'
 }
 
 export const NAV_LINKS: SocialLink[] = [

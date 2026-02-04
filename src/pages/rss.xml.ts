@@ -1,4 +1,4 @@
-import { SITE } from '@/consts'
+import { SITE } from '@/config'
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
 import type { CollectionEntry } from 'astro:content'

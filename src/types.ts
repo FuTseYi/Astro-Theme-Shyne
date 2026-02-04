@@ -22,3 +22,10 @@ export type SocialLink = {
 export type IconMap = {
   [key: string]: string | { icon: string; color: string }
 }
+
+export type Favicon = {
+  png: string
+  appleTouchIcon: string
+  appTitle: string
+  manifest: string
+}
