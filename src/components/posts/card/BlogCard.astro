@@ -1,5 +1,6 @@
 ---
-import BannerImage from '@/components/BannerImage.astro'
+import BannerImage from '@/components/base/BannerImage.astro'
+import Link from '@/components/base/Link.astro'
 import { Badge } from '@/components/ui/badge'
 import { ICON_MAP, SITE } from '@/consts'
 import {
@@ -10,7 +11,6 @@ import {
 import { formatDate } from '@/lib/utils'
 import { Icon } from 'astro-icon/components'
 import type { CollectionEntry } from 'astro:content'
-import Link from './Link.astro'
 
 interface Props {
   entry: CollectionEntry<'blog'>
@@ -63,8 +63,13 @@ const subpostCount = !isSubpost(entry.id) ? await getSubpostCount(entry.id) : 0
           <div class="flex flex-wrap gap-2">
             {entry.data.tags.map((tag) => {
               const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
-              const iconName = (typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon) || 'lucide:hash'
-              const iconColor = typeof iconEntry === 'object' && iconEntry ? iconEntry.color : undefined
+              const iconName =
+                (typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon) ||
+                'lucide:hash'
+              const iconColor =
+                typeof iconEntry === 'object' && iconEntry
+                  ? iconEntry.color
+                  : undefined
               return (
                 <Badge
                   variant="muted"

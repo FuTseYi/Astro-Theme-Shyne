@@ -1,7 +1,7 @@
 ---
-import BlogCard from '@/components/BlogCard.astro'
-import Breadcrumbs from '@/components/Breadcrumbs.astro'
-import PageHead from '@/components/PageHead.astro'
+import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
+import BlogCard from '@/components/posts/card/BlogCard.astro'
 import Layout from '@/layouts/Layout.astro'
 import { getAllTags, getPostsByTag } from '@/lib/data-utils'
 
@@ -19,7 +19,7 @@ export async function getStaticPaths() {
           posts,
         },
       }
-    })
+    }),
   )
 }
 

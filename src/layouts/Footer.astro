@@ -1,7 +1,7 @@
 ---
+import Link from '@/components/base/Link.astro'
+import SocialIcons from '@/components/base/SocialIcons.astro'
 import { SOCIAL_LINKS } from '@/consts'
-import Link from './Link.astro'
-import SocialIcons from './SocialIcons.astro'
 ---
 
 <footer class="font-pp-editorial-new mt-16 pt-12">
@@ -9,7 +9,7 @@ import SocialIcons from './SocialIcons.astro'
     class="mx-auto mb-8 flex max-w-screen-md flex-col items-center justify-center gap-2 text-center sm:mb-6"
   >
     <p class="text-muted-foreground">
-      &copy; {new Date().getFullYear()} ・ Crafted with by 
+      &copy; {new Date().getFullYear()} ・ Crafted with by
       <Link href="/about" class="text-accent transition-colors" underline
         >FuTseYi</Link
       >

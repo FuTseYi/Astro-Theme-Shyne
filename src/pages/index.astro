@@ -1,11 +1,11 @@
 ---
-import AnimatedButton from '@/components/AnimatedButton.astro'
-import BlogCard from '@/components/BlogCard.astro'
-import ExperienceTimeline from '@/components/ExperienceTimeline.astro'
-import Link from '@/components/Link.astro'
-import PageHead from '@/components/PageHead.astro'
-import ProjectCard from '@/components/ProjectCard.astro'
-import SocialIcons from '@/components/SocialIcons.astro'
+import AnimatedButton from '@/components/base/AnimatedButton.astro'
+import ExperienceTimeline from '@/components/base/ExperienceTimeline.astro'
+import Link from '@/components/base/Link.astro'
+import SocialIcons from '@/components/base/SocialIcons.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
+import BlogCard from '@/components/posts/card/BlogCard.astro'
+import ProjectCard from '@/components/projects/ProjectCard.astro'
 import { buttonVariants } from '@/components/ui/button'
 import { SITE, SOCIAL_LINKS } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
@@ -51,7 +51,9 @@ const experiences = await getAllExperiences()
         <p
           class="text-muted-foreground text-l mt-2 text-center font-serif md:text-left"
         >
-          Simple <span class="text-xs">✦</span> Fast <span class="text-xs">✦</span>
+          Simple <span class="text-xs">✦</span> Fast <span class="text-xs"
+            >✦</span
+          >
           Modern
         </p>
       </div>
@@ -72,9 +74,7 @@ const experiences = await getAllExperiences()
       </div>
     </div>
     <div class="px-6">
-      <p class="text-l text-muted-foreground mb-2 font-serif">
-        test
-      </p>
+      <p class="text-l text-muted-foreground mb-2 font-serif">test</p>
       <div class="mt-8 flex flex-col items-center gap-8 md:items-start">
         <div class="flex flex-wrap items-center justify-center gap-3">
           <AnimatedButton

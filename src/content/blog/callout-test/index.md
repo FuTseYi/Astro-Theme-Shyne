@@ -5,7 +5,7 @@ date: '2026-02-03'
 tags:
   - test
   - markdown
-is_draft: true
+draft: false
 ---
 
 ## GitHub Style Callouts

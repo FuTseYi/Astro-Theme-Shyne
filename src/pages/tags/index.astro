@@ -1,7 +1,7 @@
 ---
-import Breadcrumbs from '@/components/Breadcrumbs.astro'
-import Link from '@/components/Link.astro'
-import PageHead from '@/components/PageHead.astro'
+import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import Link from '@/components/base/Link.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
 import { badgeVariants } from '@/components/ui/badge'
 import { ICON_MAP } from '@/consts'
 import Layout from '@/layouts/Layout.astro'
@@ -20,8 +20,14 @@ const sortedTags = await getSortedTags()
       {
         sortedTags.map(({ tag, count }) => {
           const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
-          const iconName = typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon || 'lucide:hash'
-          const iconColor = typeof iconEntry === 'object' && iconEntry ? iconEntry.color : undefined
+          const iconName =
+            typeof iconEntry === 'string'
+              ? iconEntry
+              : iconEntry?.icon || 'lucide:hash'
+          const iconColor =
+            typeof iconEntry === 'object' && iconEntry
+              ? iconEntry.color
+              : undefined
           return (
             <Link
               href={`/tags/${tag}`}

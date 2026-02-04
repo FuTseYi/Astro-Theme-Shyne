@@ -1,8 +1,8 @@
 ---
-import Breadcrumbs from '@/components/Breadcrumbs.astro'
-import Link from '@/components/Link.astro'
-import PageHead from '@/components/PageHead.astro'
-import ProjectCard from '@/components/ProjectCard.astro'
+import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import Link from '@/components/base/Link.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
+import ProjectCard from '@/components/projects/ProjectCard.astro'
 import { buttonVariants } from '@/components/ui/button'
 import Layout from '@/layouts/Layout.astro'
 import { cn } from '@/lib/utils'
@@ -47,7 +47,7 @@ if (!project) {
       href="/projects"
       class={cn(
         buttonVariants({ variant: 'outline' }),
-        'inline-flex gap-x-1.5 group w-fit mx-auto'
+        'inline-flex gap-x-1.5 group w-fit mx-auto',
       )}
     >
       <span class="transition-transform group-hover:-translate-x-1">&larr;</span

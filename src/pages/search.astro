@@ -1,6 +1,6 @@
 ---
-import Breadcrumbs from '@/components/Breadcrumbs.astro'
-import PageHead from '@/components/PageHead.astro'
+import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
 import Layout from '@/layouts/Layout.astro'
 import { getAllPosts, getAllProjects } from '@/lib/data-utils'
 import { Icon } from 'astro-icon/components'
@@ -112,7 +112,7 @@ const allSearchData = [...postsData, ...projectsData]
         const regex = new RegExp(`(${escapeRegex(query)})`, 'gi')
         return escapeHtml(text).replace(
           regex,
-          '<mark style="background-color: var(--highlight);" class="rounded px-0.5 font-medium">$1</mark>'
+          '<mark style="background-color: var(--highlight);" class="rounded px-0.5 font-medium">$1</mark>',
         )
       }
 
@@ -151,7 +151,7 @@ const allSearchData = [...postsData, ...projectsData]
             .toLowerCase()
             .includes(normalizedQuery)
           const tagsMatch = item.tags.some((tag) =>
-            tag.toLowerCase().includes(normalizedQuery)
+            tag.toLowerCase().includes(normalizedQuery),
           )
           return titleMatch || descriptionMatch || tagsMatch
         })
@@ -183,7 +183,7 @@ const allSearchData = [...postsData, ...projectsData]
                             (tag) =>
                               `<span class="inline-flex items-center rounded-md bg-muted px-2 py-1 text-xs font-medium text-foreground">
                                 #${highlightMatch(tag, normalizedQuery)}
-                              </span>`
+                              </span>`,
                           )
                           .join('')}
                       </div>`
@@ -192,7 +192,7 @@ const allSearchData = [...postsData, ...projectsData]
               </div>
             </a>
           </div>
-        `
+        `,
           )
           .join('')
       }

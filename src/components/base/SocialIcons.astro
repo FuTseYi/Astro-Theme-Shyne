@@ -1,5 +1,5 @@
 ---
-import Link from '@/components/Link.astro'
+import Link from '@/components/base/Link.astro'
 import { ICON_MAP } from '@/consts'
 import type { SocialLink } from '@/types'
 import { Icon } from 'astro-icon/components'
@@ -15,7 +15,8 @@ const { links } = Astro.props
   {
     links.map(({ href, label }) => {
       const iconEntry = ICON_MAP[label as keyof typeof ICON_MAP]
-      const iconName = typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon
+      const iconName =
+        typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon
       return (
         <li>
           <Link href={href} aria-label={label} title={label} external>

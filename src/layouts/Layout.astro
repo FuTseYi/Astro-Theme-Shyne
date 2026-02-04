@@ -3,12 +3,12 @@ import '@/styles/global.css'
 import '@/styles/misc.css'
 import '@/styles/typography.css'
 
-import Footer from '@/components/Footer.astro'
-import Head from '@/components/Head.astro'
-import Header from '@/components/Header.astro'
-import LoadingBar from '@/components/LoadingBar.astro'
+import Head from '@/components/base/Head.astro'
+import LoadingBar from '@/components/base/LoadingBar.astro'
 import { SITE } from '@/consts'
 import { cn } from '@/lib/utils'
+import Footer from './Footer.astro'
+import Header from './Header.astro'
 
 interface Props {
   class?: string
