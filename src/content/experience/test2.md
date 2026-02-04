@@ -5,10 +5,10 @@ period: May 2025 - Present
 key: key
 icon: lucide:server
 location: HK, China
-companyUrl: https://www.zoho.com
+companyUrl: https://github.com/FuTseYi/Astro-Theme-Shyne
 current: true
 order: 2
-companyLogo: /public/static/common/logo.png
+companyLogo: /public/favicon/logo.png
 badges:
   - label: Java
     icon: lucide:coffee

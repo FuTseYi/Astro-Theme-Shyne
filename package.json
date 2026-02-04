@@ -1,7 +1,7 @@
 {
-  "name": "astro-erudite",
+  "name": "astro-theme-shyne",
   "type": "module",
-  "version": "1.6.3",
+  "version": "1.0.0",
   "private": true,
   "pnpm": {
     "onlyBuiltDependencies": ["sharp", "esbuild"]
