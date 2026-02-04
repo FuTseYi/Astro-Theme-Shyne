@@ -4,7 +4,7 @@ description: "testing"
 featured: true
 order: 0
 tags: ['javascript', 'vscode extension api', 'nodejs', 'npm']
-image: '/public/favicon/logo.png'
+image: '/public/hero/1.png'
 sourceCodeLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'
 siteLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'
 startDate: '2024-01-13'
