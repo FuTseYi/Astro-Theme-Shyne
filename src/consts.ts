@@ -30,13 +30,13 @@ export const NAV_LINKS: SocialLink[] = [
     label: 'blog',
   },
   {
-    href: '/tags',
-    label: 'tags',
-  },
-  {
     href: '/projects',
     label: 'projects',
-  }
+  },
+  /*{
+    href: '/tags',
+    label: 'tags',
+  },*/
 ]
 
 export const SOCIAL_LINKS: SocialLink[] = [
