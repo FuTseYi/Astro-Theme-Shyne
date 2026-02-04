@@ -49,7 +49,7 @@ const sortedExperiences = experiences.sort((a, b) => {
                 class={cn(
                   'border-border z-10 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border',
                   exp.data.current &&
-                    'shadow-primary/20 shadow-lg dark:shadow-none'
+                    'shadow-primary/20 shadow-lg dark:shadow-none',
                 )}
               >
                 <Image
@@ -96,12 +96,14 @@ const sortedExperiences = experiences.sort((a, b) => {
               {/* Badges */}
               {exp.data.badges && exp.data.badges.length > 0 && (
                 <div class="mt-4 flex flex-wrap gap-2">
-                  {exp.data.badges.map((badge) => (
-                    <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
-                      <Icon name={badge.icon} class="size-2.5" />
-                      {badge.label}
-                    </span>
-                  ))}
+                  {exp.data.badges.map(
+                    (badge: { icon: string; label: string }) => (
+                      <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
+                        <Icon name={badge.icon} class="size-2.5" />
+                        {badge.label}
+                      </span>
+                    ),
+                  )}
                 </div>
               )}
             </div>

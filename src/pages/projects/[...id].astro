@@ -6,18 +6,19 @@ import ProjectCard from '@/components/projects/ProjectCard.astro'
 import { buttonVariants } from '@/components/ui/button'
 import Layout from '@/layouts/Layout.astro'
 import { cn } from '@/lib/utils'
+import type { CollectionEntry } from 'astro:content'
 
 export async function getStaticPaths() {
   const { getCollection } = await import('astro:content')
   const projects = await getCollection('projects')
-  return projects.map((project) => ({
+  return projects.map((project: CollectionEntry<'projects'>) => ({
     params: { id: project.id },
     props: project,
   }))
 }
 
-const project = Astro.props
-const currentProjectId = Astro.params.id
+const project = Astro.props as CollectionEntry<'projects'>
+const currentProjectId = (Astro.params as { id: string }).id
 
 if (!project) {
   return Astro.redirect('/projects')

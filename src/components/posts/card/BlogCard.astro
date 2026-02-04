@@ -61,7 +61,7 @@ const subpostCount = !isSubpost(entry.id) ? await getSubpostCount(entry.id) : 0
       {
         entry.data.tags && (
           <div class="flex flex-wrap gap-2">
-            {entry.data.tags.map((tag) => {
+            {entry.data.tags.map((tag: string) => {
               const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
               const iconName =
                 (typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon) ||

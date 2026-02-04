@@ -152,7 +152,7 @@ const tocSections = await getTOCSections(currentPostId)
           {
             post.data.tags &&
               post.data.tags.length > 0 &&
-              post.data.tags.map((tag) => {
+              post.data.tags.map((tag: string) => {
                 const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
                 const iconName =
                   typeof iconEntry === 'string'
