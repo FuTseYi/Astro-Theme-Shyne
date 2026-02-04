@@ -89,7 +89,7 @@ export default defineConfig({
         {
           themes: ['github-light', 'github-dark'],
           plugins: [pluginCollapsibleSections(), pluginLineNumbers()],
-          useDarkModeMediaQuery: false,
+          useDarkModeMediaQuery: true,
           themeCssSelector: (theme: ExpressiveCodeTheme) =>
             `[data-theme="${theme.name.split('-')[1]}"]`,
           defaultProps: {

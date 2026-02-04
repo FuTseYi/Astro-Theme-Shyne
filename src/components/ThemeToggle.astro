@@ -10,63 +10,76 @@ import { Icon } from 'astro-icon/components'
   title="Toggle theme"
   className="text-foreground/60 hover:text-foreground -my-2 -me-2 size-8 transition-colors duration-300 hover:cursor-pointer hover:bg-transparent dark:hover:bg-transparent"
 >
-  <Icon name="lucide:sun" class="size-4 dark:hidden" />
-  <Icon name="lucide:moon" class="absolute hidden size-4 dark:block" />
+  <Icon name="lucide:sun" class="theme-icon theme-light size-4" />
+  <Icon name="lucide:moon" class="theme-icon theme-dark size-4" />
+  <Icon name="lucide:monitor" class="theme-icon theme-auto size-4" />
   <span class="sr-only">Toggle theme</span>
 </Button>
 
 <script is:inline data-astro-rerun>
-  ;(() => {
-    const theme = (() => {
-      const stored = localStorage?.getItem('theme') ?? ''
-      if (['dark', 'light'].includes(stored)) return stored
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-    })()
-
-    document.documentElement.setAttribute('data-theme', theme)
-    window.localStorage.setItem('theme', theme)
-  })()
+  const getTheme = () =>
+    matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  const mode = localStorage?.getItem('theme-mode') ?? 'auto'
+  const theme = mode === 'auto' ? getTheme() : mode
+  document.documentElement.setAttribute('data-theme', theme)
+  document.documentElement.setAttribute('data-theme-mode', mode)
 </script>
 
 <script>
-  function handleToggleClick() {
-    const element = document.documentElement
-    const currentTheme = element.getAttribute('data-theme')
-    const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+  const MODES = ['light', 'dark', 'auto'] as const
+  let mediaQuery: MediaQueryList | null = null
+  let listener: ((e: MediaQueryListEvent) => void) | null = null
 
-    element.classList.add('[&_*]:transition-none')
-    element.setAttribute('data-theme', newTheme)
-    window.getComputedStyle(element).getPropertyValue('opacity')
+  const getTheme = () =>
+    matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  const $root = document.documentElement
 
-    requestAnimationFrame(() => {
-      element.classList.remove('[&_*]:transition-none')
-    })
+  function setTheme(mode: string, animate = true) {
+    const theme = mode === 'auto' ? getTheme() : mode
 
-    localStorage.setItem('theme', newTheme)
-  }
+    if (animate) {
+      $root.classList.add('[&_*]:transition-none')
+      getComputedStyle($root).opacity // 强制重排
+    }
 
-  function initThemeToggle() {
+    $root.setAttribute('data-theme', theme)
+    $root.setAttribute('data-theme-mode', mode)
+    localStorage.setItem('theme-mode', mode)
+
+    if (animate)
+      requestAnimationFrame(() =>
+        $root.classList.remove('[&_*]:transition-none'),
+      )
+
+    // 更新图标
     document
-      .getElementById('theme-toggle')
-      ?.addEventListener('click', handleToggleClick)
+      .querySelectorAll('.theme-icon')
+      .forEach((el) => el.classList.add('hidden'))
+    document.querySelector(`.theme-${mode}`)?.classList.remove('hidden')
+
+    // 管理监听器
+    listener && mediaQuery?.removeEventListener('change', listener)
+    if (mode === 'auto') {
+      mediaQuery = matchMedia('(prefers-color-scheme: dark)')
+      listener = (e) =>
+        localStorage.getItem('theme-mode') === 'auto' && setTheme('auto', true)
+      mediaQuery.addEventListener('change', listener)
+    }
   }
 
-  initThemeToggle()
+  function toggle() {
+    const mode = $root.getAttribute('data-theme-mode') || 'auto'
+    const next = MODES[(MODES.indexOf(mode as any) + 1) % MODES.length]
+    setTheme(next)
+  }
 
+  // 初始化
+  setTheme($root.getAttribute('data-theme-mode') || 'auto', false)
+  document.getElementById('theme-toggle')?.addEventListener('click', toggle)
+
+  // View Transitions 支持
   document.addEventListener('astro:after-swap', () => {
-    const storedTheme = localStorage.getItem('theme') || 'light'
-    const element = document.documentElement
-
-    element.classList.add('[&_*]:transition-none')
-    window.getComputedStyle(element).getPropertyValue('opacity')
-    element.setAttribute('data-theme', storedTheme)
-
-    requestAnimationFrame(() => {
-      element.classList.remove('[&_*]:transition-none')
-    })
-
-    initThemeToggle()
+    setTheme(localStorage.getItem('theme-mode') || 'auto', false)
+    document.getElementById('theme-toggle')?.addEventListener('click', toggle)
   })
 </script>
