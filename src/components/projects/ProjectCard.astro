@@ -10,14 +10,43 @@ interface Props {
 }
 
 const { entry } = Astro.props
+
+// 卡片尺寸配置 - 可自定义修改
+const CARD_CONFIG = {
+  // 卡片圆角
+  rounded: 'rounded-lg',
+  // 图片区域宽度（所有屏幕尺寸统一显示在左侧）
+  imageWidth: 'max-w-[100px] sm:max-w-[140px]', // 移动端 100px，桌面端 140px
+  // 内容区域内边距
+  contentPadding: 'p-3',
+  // 内容间距
+  contentGap: 'gap-3',
+  // 标题字体大小
+  titleSize: 'text-lg',
+  // 描述字体大小
+  descriptionSize: 'text-xs',
+  // 按钮区域上边距
+  buttonMarginTop: 'mt-3',
+  // 按钮区域上内边距
+  buttonPaddingTop: 'pt-3',
+  // 按钮间距
+  buttonGap: 'gap-1.5',
+}
 ---
 
 <div
   id={entry.id}
-  class="flex scroll-mt-20 flex-col overflow-hidden rounded-xl border transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-lg sm:flex-row sm:items-stretch"
+  class:list={[
+    'flex scroll-mt-20 flex-row items-stretch overflow-hidden transition-all duration-300 ease-in-out',
+    'hover:scale-[1.01] hover:shadow-lg',
+    CARD_CONFIG.rounded,
+  ]}
 >
   <div
-    class="border-border w-full overflow-hidden border-b sm:max-w-3xs sm:shrink-0 sm:self-stretch sm:border-r sm:border-b-0"
+    class:list={[
+      'shrink-0 self-stretch overflow-hidden',
+      CARD_CONFIG.imageWidth,
+    ]}
   >
     <BannerImage
       src={entry.data.image}
@@ -25,21 +54,26 @@ const { entry } = Astro.props
       alt={entry.data.name}
       width={1200}
       height={630}
-      class="h-full w-full object-cover"
+      class="h-full w-full object-contain"
     />
   </div>
-  <div class="flex grow flex-col p-4">
-    <div class="flex grow flex-col gap-4">
+  <div class:list={['flex grow flex-col', CARD_CONFIG.contentPadding]}>
+    <div class:list={['flex grow flex-col', CARD_CONFIG.contentGap]}>
       <div>
-        <h3 class="mb-1 text-xl font-bold">
+        <h3 class:list={['mb-1 font-bold', CARD_CONFIG.titleSize]}>
           {entry.data.name}
         </h3>
-        <p class="text-muted-foreground mb-2 text-sm">
+        <p
+          class:list={[
+            'text-muted-foreground mb-1.5',
+            CARD_CONFIG.descriptionSize,
+          ]}
+        >
           {entry.data.description}
         </p>
         {
           entry.data.tags && (
-            <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-1.5">
               {entry.data.tags.map((tag: string) => {
                 const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
                 const iconName =
@@ -49,10 +83,10 @@ const { entry } = Astro.props
                     ? iconEntry.color
                     : undefined
                 return (
-                  <span class="text-muted-foreground bg-muted/30 flex items-center gap-1.5 rounded-sm px-1.5 py-0.5 text-xs">
+                  <span class="text-muted-foreground bg-muted/30 flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs">
                     <Icon
                       name={iconName || 'lucide:code'}
-                      class="size-2.5"
+                      class="size-2"
                       style={iconColor ? `color: ${iconColor}` : undefined}
                     />
                     {tag}
@@ -68,7 +102,14 @@ const { entry } = Astro.props
       (entry.data.sourceCodeLink ||
         entry.data.siteLink ||
         entry.data.relatedBlogsLink) && (
-        <div class="mt-4 flex flex-wrap gap-2 border-t pt-4">
+        <div
+          class:list={[
+            'flex flex-wrap border-t',
+            CARD_CONFIG.buttonMarginTop,
+            CARD_CONFIG.buttonPaddingTop,
+            CARD_CONFIG.buttonGap,
+          ]}
+        >
           {entry.data.sourceCodeLink && (
             <AnimatedButton
               href={entry.data.sourceCodeLink}
