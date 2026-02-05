@@ -49,7 +49,7 @@ const CARD_CONFIG = {
     ]}
   >
     <BannerImage
-      src={entry.data.image}
+      src={entry.data.image ?? undefined}
       defaultSrc={SITE.defaultProjectBanner}
       alt={entry.data.name}
       width={1200}

@@ -58,7 +58,7 @@ const CARD_CONFIG = {
       ]}
     >
       <BannerImage
-        src={entry.data.image}
+        src={entry.data.image ?? undefined}
         defaultSrc={SITE.defaultPostBanner}
         alt={entry.data.title}
         width={1200}

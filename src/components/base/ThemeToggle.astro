@@ -61,7 +61,7 @@ import { Icon } from 'astro-icon/components'
     listener && mediaQuery?.removeEventListener('change', listener)
     if (mode === 'auto') {
       mediaQuery = matchMedia('(prefers-color-scheme: dark)')
-      listener = (e) =>
+      listener = () =>
         localStorage.getItem('theme-mode') === 'auto' && setTheme('auto', true)
       mediaQuery.addEventListener('change', listener)
     }
