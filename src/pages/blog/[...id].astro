@@ -1,5 +1,4 @@
 ---
-import BannerImage from '@/components/base/BannerImage.astro'
 import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
 import PostHead from '@/components/posts/base/PostHead.astro'
 import PostNavigation from '@/components/posts/base/PostNavigation.astro'
@@ -9,7 +8,7 @@ import TOCHeader from '@/components/posts/toc/TOCHeader.astro'
 import TOCSidebar from '@/components/posts/toc/TOCSidebar.astro'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ICON_MAP, SITE } from '@/config'
+import { ICON_MAP } from '@/config'
 import Layout from '@/layouts/Layout.astro'
 import {
   getAdjacentPosts,
@@ -105,16 +104,6 @@ const tocSections = await getTOCSections(currentPostId)
         ]}
       />
     </div>
-
-    <!-- same 1200 x 630 banner but upscaled -->
-    <BannerImage
-      src={post.data.image}
-      defaultSrc={SITE.defaultPostBanner}
-      alt={post.data.title}
-      width={2400}
-      height={1260}
-      class="col-span-full mx-auto w-full max-w-5xl object-cover"
-    />
 
     <section class="col-start-2 flex flex-col gap-y-6">
       <div class="flex flex-col">
