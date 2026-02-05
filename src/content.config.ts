@@ -8,9 +8,9 @@ const blog = defineCollection({
       title: z.string(),
       description: z.string(),
       date: z.coerce.date(),
-      order: z.number().optional(),
-      image: image().optional(),
-      tags: z.array(z.string()).optional(),
+      tags: z.array(z.string()).nullish(),
+      image: image().nullish(),
+      order: z.number().nullish(),
       draft: z.boolean().optional(),
     }),
 })
@@ -22,15 +22,14 @@ const projects = defineCollection({
       name: z.string(),
       description: z.string(),
       tags: z.array(z.string()),
-      image: image().optional(),
-      link: z.string().url().optional(),
-      sourceCodeLink: z.string().url().optional(),
-      siteLink: z.string().url().optional(),
-      relatedBlogsLink: z.string().optional(),
-      startDate: z.coerce.date().optional(),
-      endDate: z.coerce.date().optional(),
+      image: image().nullish(),
+      sourceCodeLink: z.string().url().nullish().or(z.literal('')),
+      siteLink: z.string().url().nullish().or(z.literal('')),
+      relatedBlogsLink: z.string().nullish().or(z.literal('')),
+      startDate: z.coerce.date().nullish(),
+      endDate: z.coerce.date().nullish(),
       featured: z.boolean().optional().default(false),
-      order: z.number().optional(),
+      order: z.number().nullish(),
     }),
 })
 
@@ -44,16 +43,16 @@ const experience = defineCollection({
       key: z.string(),
       icon: z.string(),
       location: z.string(),
-      companyLogo: image().optional(),
-      companyUrl: z.string().url().optional(),
+      companyLogo: image().nullish(),
+      companyUrl: z.string().url().nullish().or(z.literal('')),
       current: z.boolean().optional(),
-      order: z.number().optional(),
+      order: z.number().nullish(),
       badges: z.array(
         z.object({
           label: z.string(),
           icon: z.string(),
         })
-      ).optional(),
+      ).nullish(),
     }),
 })
 
