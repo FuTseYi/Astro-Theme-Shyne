@@ -23,9 +23,18 @@ export type IconMap = {
   [key: string]: string | { icon: string; color: string }
 }
 
+export type ManifestIcon = {
+  src: string
+  sizes?: string
+  type?: string
+  purpose?: string
+}
+
 export type Favicon = {
   png: string
   appleTouchIcon: string
   appTitle: string
-  manifest: string
+  themeColor?: string
+  backgroundColor?: string
+  manifestIcons?: ManifestIcon[]
 }
