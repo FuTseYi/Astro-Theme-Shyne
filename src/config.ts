@@ -24,7 +24,8 @@ export const FAVICON: Favicon = {
   png: '/favicon/logo.png',
   appleTouchIcon: '/favicon/logo.png',
   appTitle: 'Astro-Theme-Shyne',
-  manifest: '/site.webmanifest'
+  themeColor: '#ffffff',
+  backgroundColor: '#ffffff',
 }
 
 export const NAV_LINKS: SocialLink[] = [
@@ -34,16 +35,16 @@ export const NAV_LINKS: SocialLink[] = [
     icon: 'lucide:search',
   },
   {
-    href: '/about',
-    label: 'about',
-  },
-  {
     href: '/blog',
     label: 'blog',
   },
   {
     href: '/projects',
     label: 'projects',
+  },
+  {
+    href: '/about',
+    label: 'about',
   },
   /*{
     href: '/tags',

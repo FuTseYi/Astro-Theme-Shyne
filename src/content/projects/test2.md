@@ -1,6 +1,6 @@
 ---
-name: 'test2'
-description: 'testing'
+name: 'Project-2'
+description: 'Content'
 featured: true
 order: 0
 tags: ['java', 'java swing', 'maven']
