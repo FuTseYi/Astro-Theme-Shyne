@@ -1,22 +1,39 @@
 ---
 import Link from '@/components/base/Link.astro'
 import SocialIcons from '@/components/base/SocialIcons.astro'
-import { SOCIAL_LINKS } from '@/config'
+import { FOOTER_LINKS, SOCIAL_LINKS } from '@/config'
+import { Icon } from 'astro-icon/components'
 ---
 
-<footer class="font-pp-editorial-new mt-16 pt-12">
+<footer class="font-pp-editorial-new mt-1 pt-1">
+  <div
+    class="text-muted-foreground mt-4 flex flex-wrap justify-center gap-x-6 gap-y-1 px-6 pb-4 text-sm font-medium sm:px-8"
+  >
+    {
+      FOOTER_LINKS.map((link) => (
+        <Link
+          href={link.href}
+          class="hover:text-accent flex items-center gap-1.5 transition-colors"
+        >
+          {link.icon && <Icon name={link.icon} class="size-4" />}
+          {link.label}
+        </Link>
+      ))
+    }
+  </div>
   <div
     class="mx-auto mb-8 flex max-w-screen-md flex-col items-center justify-center gap-2 text-center sm:mb-6"
   >
-    <p class="text-muted-foreground">
+    <div class="mt-2">
+      <SocialIcons links={SOCIAL_LINKS} />
+    </div>
+
+    <p class="text-muted-foreground mt-2">
       &copy; {new Date().getFullYear()} ・ Crafted with by
       <Link href="/about" class="text-accent transition-colors" underline
         >FuTseYi</Link
       >
     </p>
-    <div class="mt-2">
-      <SocialIcons links={SOCIAL_LINKS} />
-    </div>
   </div>
 
   <div class="m-0 p-0">

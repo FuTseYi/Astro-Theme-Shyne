@@ -1,7 +1,7 @@
 ---
 import Link from '@/components/base/Link.astro'
 import ThemeToggle from '@/components/base/ThemeToggle.astro'
-import { NAV_LINKS, SITE } from '@/config'
+import { HEADER_LINKS, SITE } from '@/config'
 import { Icon } from 'astro-icon/components'
 ---
 
@@ -19,7 +19,7 @@ import { Icon } from 'astro-icon/components'
     <div class="flex items-center gap-4">
       <nav class="flex items-center gap-4 text-sm sm:gap-6">
         {
-          NAV_LINKS.map((item) => {
+          HEADER_LINKS.map((item) => {
             const baseClass =
               'text-foreground/60 hover:text-foreground capitalize transition-colors flex items-center gap-1.5'
 

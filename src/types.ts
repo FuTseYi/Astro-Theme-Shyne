@@ -12,6 +12,13 @@ export type Site = {
   defaultProjectBanner: string
 }
 
+export type NavLink = {
+  href: string
+  label: string
+  icon?: string
+  hideBelowPx?: number
+}
+
 export type SocialLink = {
   href: string
   label: string

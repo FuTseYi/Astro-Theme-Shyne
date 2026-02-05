@@ -1,6 +1,7 @@
 import type {
   Favicon,
   IconMap,
+  NavLink,
   Site,
   SocialLink,
 } from '@/types'
@@ -28,54 +29,61 @@ export const FAVICON: Favicon = {
   backgroundColor: '#ffffff',
 }
 
-export const NAV_LINKS: SocialLink[] = [
+export const HEADER_LINKS: NavLink[] = [
   {
-    href: '/search',
+    label: 'blog',
+    href: '/blog',
+  },
+  {
+    label: 'projects',
+    href: '/projects',
+  },
+  {
+    label: 'about',
+    href: '/about',
+  },
+  {
     label: '',
+    href: '/search',
     icon: 'lucide:search',
   },
+]
+
+export const FOOTER_LINKS: NavLink[] = [
   {
-    href: '/blog',
-    label: 'blog',
+    label: 'Home',
+    href: '/',
   },
   {
-    href: '/projects',
-    label: 'projects',
-  },
-  {
-    href: '/about',
-    label: 'about',
-  },
-  /*{
+    label: 'Tags',
     href: '/tags',
-    label: 'tags',
-  },*/
+  },
 ]
 
 export const SOCIAL_LINKS: SocialLink[] = [
   {
-    href: 'mailto:',
     label: 'Email',
+    href: 'mailto:',
   },
   {
-    href: 'https://linkedin.com/in/',
     label: 'LinkedIn',
+    href: 'https://linkedin.com/in/',
   },
   {
-    href: 'https://github.com/',
     label: 'GitHub',
+    href: 'https://github.com/',
   },
   {
-    href: 'https://twitter.com/',
     label: 'Twitter',
+    href: 'https://twitter.com/',
   },
   {
-    href: 'https://instagram.com/',
     label: 'Instagram',
+    href: 'https://instagram.com/',
   },
   {
-    href: '/rss.xml',
     label: 'RSS',
+    href: '/rss.xml',
   }
 ]
 
@@ -118,4 +126,5 @@ export const ICON_MAP: IconMap = {
   maven: { icon: 'simple-icons:apachemaven', color: '#C71A36' },
   'vscode extension api': { icon: 'lucide:code', color: '#007ACC' },
 }
+
 
