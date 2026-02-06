@@ -3,7 +3,6 @@ import { defineConfig } from 'astro/config'
 import react from '@astrojs/react'
 import sitemap from '@astrojs/sitemap'
 import icon from 'astro-icon'
-import AstroPWA from '@vite-pwa/astro'
 
 import { rehypeHeadingIds } from '@astrojs/markdown-remark'
 import rehypeExpressiveCode from 'rehype-expressive-code'
@@ -25,59 +24,10 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
 
 import tailwindcss from '@tailwindcss/vite'
-import { SITE, FAVICON } from './src/config'
-
-function getImageMimeType(path: string): string {
-  const ext = path.split('.').pop()?.toLowerCase()
-  const mimeMap: Record<string, string> = {
-    png: 'image/png',
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    webp: 'image/webp',
-    svg: 'image/svg+xml',
-    ico: 'image/x-icon',
-    avif: 'image/avif',
-  }
-  return mimeMap[ext || ''] || 'image/png'
-}
 
 export default defineConfig({
-  site: SITE.href,
-  integrations: [
-    react(),
-    sitemap(),
-    icon(),
-    AstroPWA({
-      registerType: 'autoUpdate',
-      manifest: {
-        name: SITE.title,
-        short_name: SITE.title,
-        description: SITE.description,
-        theme_color: FAVICON.themeColor ?? '#ffffff',
-        background_color: FAVICON.backgroundColor ?? '#ffffff',
-        display: 'standalone',
-        icons: FAVICON.manifestIcons ?? [
-          {
-            src: FAVICON.png,
-            sizes: 'any',
-            type: getImageMimeType(FAVICON.png),
-          },
-          {
-            src: FAVICON.appleTouchIcon,
-            sizes: '180x180',
-            type: getImageMimeType(FAVICON.appleTouchIcon),
-          },
-        ],
-      },
-      workbox: {
-        navigateFallback: '/404',
-        globPatterns: ['**/*.{css,js,html,svg,png,ico,txt}'],
-      },
-      devOptions: {
-        enabled: false,
-      },
-    }),
-  ],
+  site: 'https://shyne.vercel.app',
+  integrations: [react(), sitemap(), icon()],
 
   vite: {
     plugins: [tailwindcss()],
