@@ -24,7 +24,7 @@ const projectsData = allProjects.map((project) => ({
   id: project.id,
   title: project.data.name,
   description: project.data.description,
-  tags: project.data.tags || [],
+  tags: project.data.tags?.map((tag) => tag.label) || [],
   slug: `/projects/${project.id}`,
   type: 'project',
 }))
@@ -110,10 +110,16 @@ const allSearchData = [...postsData, ...projectsData]
       function highlightMatch(text, query) {
         if (!query.trim()) return escapeHtml(text)
         const regex = new RegExp(`(${escapeRegex(query)})`, 'gi')
-        return escapeHtml(text).replace(
-          regex,
-          '<mark style="background-color: var(--highlight);" class="rounded px-0.5 font-medium">$1</mark>',
-        )
+        const parts = text.split(regex)
+        return parts
+          .map((part, i) => {
+            if (i % 2 === 1) {
+              // This is a match
+              return `<mark style="background-color: var(--highlight);" class="rounded px-0.5 font-medium">${escapeHtml(part)}</mark>`
+            }
+            return escapeHtml(part)
+          })
+          .join('')
       }
 
       function escapeRegex(str) {
