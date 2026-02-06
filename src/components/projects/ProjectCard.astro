@@ -1,7 +1,7 @@
 ---
 import AnimatedButton from '@/components/base/AnimatedButton.astro'
 import BannerImage from '@/components/base/BannerImage.astro'
-import { ICON_MAP, SITE } from '@/config'
+import { SITE } from '@/config'
 import { Icon } from 'astro-icon/components'
 import type { CollectionEntry } from 'astro:content'
 
@@ -74,25 +74,12 @@ const CARD_CONFIG = {
         {
           entry.data.tags && (
             <div class="flex flex-wrap gap-1.5">
-              {entry.data.tags.map((tag: string) => {
-                const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
-                const iconName =
-                  typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon
-                const iconColor =
-                  typeof iconEntry === 'object' && iconEntry
-                    ? iconEntry.color
-                    : undefined
-                return (
-                  <span class="text-muted-foreground bg-muted/30 flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs">
-                    <Icon
-                      name={iconName || 'lucide:code'}
-                      class="size-2"
-                      style={iconColor ? `color: ${iconColor}` : undefined}
-                    />
-                    {tag}
-                  </span>
-                )
-              })}
+              {entry.data.tags.map((tag: string) => (
+                <span class="text-muted-foreground bg-muted/30 flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs">
+                  <Icon name="lucide:code" class="size-2" />
+                  {tag}
+                </span>
+              ))}
             </div>
           )
         }

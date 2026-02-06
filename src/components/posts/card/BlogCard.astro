@@ -2,7 +2,7 @@
 import BannerImage from '@/components/base/BannerImage.astro'
 import Link from '@/components/base/Link.astro'
 import { Badge } from '@/components/ui/badge'
-import { ICON_MAP, SITE } from '@/config'
+import { SITE } from '@/config'
 import {
   getCombinedReadingTime,
   getSubpostCount,
@@ -101,29 +101,15 @@ const CARD_CONFIG = {
       {
         entry.data.tags && (
           <div class="flex flex-wrap gap-1.5">
-            {entry.data.tags.map((tag: string) => {
-              const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
-              const iconName =
-                (typeof iconEntry === 'string' ? iconEntry : iconEntry?.icon) ||
-                'lucide:hash'
-              const iconColor =
-                typeof iconEntry === 'object' && iconEntry
-                  ? iconEntry.color
-                  : undefined
-              return (
-                <Badge
-                  variant="muted"
-                  className="flex bg-muted/30 border border-border items-center gap-x-1"
-                >
-                  <Icon
-                    name={iconName}
-                    class="size-2.5"
-                    style={iconColor ? `color: ${iconColor}` : undefined}
-                  />
-                  {tag}
-                </Badge>
-              )
-            })}
+            {entry.data.tags.map((tag: string) => (
+              <Badge
+                variant="muted"
+                className="flex bg-muted/30 border border-border items-center gap-x-1"
+              >
+                <Icon name="lucide:hash" class="size-2.5" />
+                {tag}
+              </Badge>
+            ))}
           </div>
         )
       }

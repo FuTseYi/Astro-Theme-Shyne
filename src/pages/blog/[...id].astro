@@ -8,7 +8,6 @@ import TOCHeader from '@/components/posts/toc/TOCHeader.astro'
 import TOCSidebar from '@/components/posts/toc/TOCSidebar.astro'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ICON_MAP } from '@/config'
 import Layout from '@/layouts/Layout.astro'
 import {
   getAdjacentPosts,
@@ -141,32 +140,17 @@ const tocSections = await getTOCSections(currentPostId)
           {
             post.data.tags &&
               post.data.tags.length > 0 &&
-              post.data.tags.map((tag: string) => {
-                const iconEntry = ICON_MAP[tag as keyof typeof ICON_MAP]
-                const iconName =
-                  typeof iconEntry === 'string'
-                    ? iconEntry
-                    : iconEntry?.icon || 'lucide:hash'
-                const iconColor =
-                  typeof iconEntry === 'object' && iconEntry
-                    ? iconEntry.color
-                    : undefined
-                return (
-                  <a href={`/tags/${tag}`}>
-                    <Badge
-                      variant="muted"
-                      className="flex bg-muted/30 border border-border items-center gap-x-1 hover:bg-muted/70 transition-all duration-100 ease-in-out"
-                    >
-                      <Icon
-                        name={iconName}
-                        class="size-3"
-                        style={iconColor ? `color: ${iconColor}` : undefined}
-                      />
-                      {tag}
-                    </Badge>
-                  </a>
-                )
-              })
+              post.data.tags.map((tag: string) => (
+                <a href={`/tags/${tag}`}>
+                  <Badge
+                    variant="muted"
+                    className="flex bg-muted/30 border border-border items-center gap-x-1 hover:bg-muted/70 transition-all duration-100 ease-in-out"
+                  >
+                    <Icon name="lucide:hash" class="size-3" />
+                    {tag}
+                  </Badge>
+                </a>
+              ))
           }
         </div>
       </div>

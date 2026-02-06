@@ -26,10 +26,6 @@ export type SocialLink = {
   hideBelowPx?: number
 }
 
-export type IconMap = {
-  [key: string]: string | { icon: string; color: string }
-}
-
 export type Favicon = {
   png: string
   appleTouchIcon: string
