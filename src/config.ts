@@ -25,8 +25,6 @@ export const FAVICON: Favicon = {
   png: '/favicon/logo.png',
   appleTouchIcon: '/favicon/logo.png',
   appTitle: 'Astro-Theme-Shyne',
-  themeColor: '#ffffff',
-  backgroundColor: '#ffffff',
 }
 
 export const HEADER_LINKS: NavLink[] = [

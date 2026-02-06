@@ -34,5 +34,4 @@ export type Favicon = {
   png: string
   appleTouchIcon: string
   appTitle: string
-  manifest: string
 }
