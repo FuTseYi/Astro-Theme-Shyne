@@ -36,10 +36,6 @@ export const HEADER_LINKS: NavLink[] = [
     href: '/projects',
   },
   {
-    label: 'about',
-    href: '/about',
-  },
-  {
     label: '',
     href: '/search',
     icon: 'lucide:search',
@@ -48,9 +44,9 @@ export const HEADER_LINKS: NavLink[] = [
 
 export const FOOTER_LINKS: NavLink[] = [
   {
-    label: 'Home',
-    href: '/',
-    icon: 'lucide:house',
+    label: 'About',
+    href: '/about',
+    icon: 'lucide:user-star',
   },
   {
     label: 'Tags',
