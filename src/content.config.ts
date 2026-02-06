@@ -21,7 +21,12 @@ const projects = defineCollection({
     z.object({
       name: z.string(),
       description: z.string(),
-      tags: z.array(z.string()),
+      tags: z.array(
+        z.object({
+          label: z.string(),
+          icon: z.string().optional(),
+        })
+      ).nullish(),
       image: image().nullish(),
       sourceCodeLink: z.string().url().nullish().or(z.literal('')),
       siteLink: z.string().url().nullish().or(z.literal('')),
@@ -39,18 +44,17 @@ const experience = defineCollection({
     z.object({
       role: z.string(),
       company: z.string(),
-      period: z.string(),
-      key: z.string(),
-      icon: z.string(),
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date().nullish(),
+      description: z.string(),
       location: z.string(),
       companyLogo: image().nullish(),
       companyUrl: z.string().url().nullish().or(z.literal('')),
-      current: z.boolean().optional(),
       order: z.number().nullish(),
-      badges: z.array(
+      tags: z.array(
         z.object({
           label: z.string(),
-          icon: z.string(),
+          icon: z.string().optional(),
         })
       ).nullish(),
     }),

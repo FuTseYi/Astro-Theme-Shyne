@@ -16,9 +16,35 @@ interface Props {
 
 const { experiences } = Astro.props
 
+// 格式化日期函数
+const formatDate = (date: Date | null | undefined): string => {
+  if (!date) return ''
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+  }).format(date)
+}
+
+const getDateRange = (exp: CollectionEntry<'experience'>) => {
+  const start = formatDate(exp.data.startDate)
+  if (!start) return ''
+
+  const end = formatDate(exp.data.endDate)
+  if (end) {
+    return `${start} - ${end}`
+  }
+
+  // 如果没有 endDate，显示 Present
+  return `${start} - Present`
+}
+
+const isCurrentExperience = (exp: CollectionEntry<'experience'>) => {
+  return !exp.data.endDate
+}
+
 const sortedExperiences = experiences.sort((a, b) => {
-  if (a.data.current && !b.data.current) return -1
-  if (!a.data.current && b.data.current) return 1
+  if (isCurrentExperience(a) && !isCurrentExperience(b)) return -1
+  if (!isCurrentExperience(a) && isCurrentExperience(b)) return 1
 
   const orderA = a.data.order ?? 0
   const orderB = b.data.order ?? 0
@@ -48,7 +74,7 @@ const sortedExperiences = experiences.sort((a, b) => {
               <div
                 class={cn(
                   'border-border z-10 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border',
-                  exp.data.current &&
+                  isCurrentExperience(exp) &&
                     'shadow-primary/20 shadow-lg dark:shadow-none',
                 )}
               >
@@ -69,7 +95,7 @@ const sortedExperiences = experiences.sort((a, b) => {
                   <h3 class="text-foreground text-lg leading-tight font-semibold">
                     {exp.data.role}
                   </h3>
-                  {exp.data.current && (
+                  {isCurrentExperience(exp) && (
                     <span class="inline-flex items-center gap-1 rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
                       <span class="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400" />
                       Active
@@ -82,7 +108,7 @@ const sortedExperiences = experiences.sort((a, b) => {
 
                 {/* Period and Location */}
                 <p class="text-muted-foreground text-sm">
-                  {exp.data.period}
+                  <span class="font-semibold">{getDateRange(exp)}</span>
                   <span class="mx-2">·</span>
                   {exp.data.location}
                 </p>
@@ -90,17 +116,17 @@ const sortedExperiences = experiences.sort((a, b) => {
 
               {/* Description */}
               <p class="text-muted-foreground/90 mt-2 text-sm leading-relaxed">
-                {exp.data.key}
+                {exp.data.description}
               </p>
 
-              {/* Badges */}
-              {exp.data.badges && exp.data.badges.length > 0 && (
+              {/* Tags */}
+              {exp.data.tags && exp.data.tags.length > 0 && (
                 <div class="mt-4 flex flex-wrap gap-2">
-                  {exp.data.badges.map(
-                    (badge: { icon: string; label: string }) => (
+                  {exp.data.tags.map(
+                    (tag: { icon?: string; label: string }) => (
                       <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
-                        <Icon name={badge.icon} class="size-2.5" />
-                        {badge.label}
+                        {tag.icon && <Icon name={tag.icon} class="size-2.5" />}
+                        {tag.label}
                       </span>
                     ),
                   )}

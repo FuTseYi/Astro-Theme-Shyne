@@ -11,6 +11,30 @@ interface Props {
 
 const { entry } = Astro.props
 
+// 格式化日期函数
+const formatDate = (date: Date | null | undefined): string => {
+  if (!date) return ''
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+  }).format(date)
+}
+
+const getDateRange = () => {
+  const start = formatDate(entry.data.startDate)
+  if (!start) return ''
+
+  const end = formatDate(entry.data.endDate)
+  if (end) {
+    return `${start} - ${end}`
+  }
+
+  // 如果没有 endDate，显示 Present
+  return `${start} - Present`
+}
+
+const dateRange = getDateRange()
+
 // 卡片尺寸配置 - 可自定义修改
 const CARD_CONFIG = {
   // 卡片圆角
@@ -63,6 +87,13 @@ const CARD_CONFIG = {
         <h3 class:list={['mb-1 font-bold', CARD_CONFIG.titleSize]}>
           {entry.data.name}
         </h3>
+        {
+          dateRange && (
+            <p class="text-muted-foreground mb-1.5 text-xs font-semibold">
+              {dateRange}
+            </p>
+          )
+        }
         <p
           class:list={[
             'text-muted-foreground mb-1.5',
@@ -72,12 +103,12 @@ const CARD_CONFIG = {
           {entry.data.description}
         </p>
         {
-          entry.data.tags && (
-            <div class="flex flex-wrap gap-1.5">
-              {entry.data.tags.map((tag: string) => (
-                <span class="text-muted-foreground bg-muted/30 flex items-center gap-1 rounded-sm px-1.5 py-0.5 text-xs">
-                  <Icon name="lucide:code" class="size-2" />
-                  {tag}
+          entry.data.tags && entry.data.tags.length > 0 && (
+            <div class="flex flex-wrap gap-2">
+              {entry.data.tags.map((tag: { icon?: string; label: string }) => (
+                <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
+                  {tag.icon && <Icon name={tag.icon} class="size-2.5" />}
+                  {tag.label}
                 </span>
               ))}
             </div>
