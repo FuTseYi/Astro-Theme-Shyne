@@ -1,4 +1,4 @@
-import { SITE } from '@/config'
+import { SITE, FAVICON } from '@/config'
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
 import type { CollectionEntry } from 'astro:content'
@@ -19,14 +19,12 @@ function getImageMimeType(imageUrl: string): string {
   return MIME_TYPES[extension] || DEFAULT_MIME_TYPE
 }
 
-function createImageUrl(imageSrc: string | undefined, siteUrl: string): string {
-  return imageSrc
-    ? new URL(imageSrc, siteUrl).toString()
-    : new URL(SITE.defaultPostBanner, siteUrl).toString()
+function createImageUrl(siteUrl: string): string {
+  return new URL(FAVICON.src, siteUrl).toString()
 }
 
 function createRssItem(post: CollectionEntry<'blog'>, siteUrl: string) {
-  const imageUrl = createImageUrl(post.data.image?.src, siteUrl)
+  const imageUrl = createImageUrl(siteUrl)
   const imageType = getImageMimeType(imageUrl)
   const postUrl = new URL(`/blog/${post.id}/`, siteUrl).toString()
 

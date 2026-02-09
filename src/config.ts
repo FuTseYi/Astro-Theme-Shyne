@@ -16,12 +16,10 @@ export const SITE: Site = {
   featuredProjectCount: 3,
   postsPerPage: 3,
   projectsPerPage: 3,
-  defaultPostBanner: '/default/default-post-banner-1200x630.jpg',
-  defaultProjectBanner: '/default/default-project-banner-1200x630.jpg'
 }
 
 export const FAVICON: Favicon = {
-  png: '/favicon/logo.png',
+  src: '/favicon/logo.png',
   appleTouchIcon: '/favicon/logo.png',
   appTitle: 'Astro-Theme-Shyne',
 }

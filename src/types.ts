@@ -8,8 +8,6 @@ export type Site = {
   featuredProjectCount: number
   postsPerPage: number
   projectsPerPage: number
-  defaultPostBanner: string
-  defaultProjectBanner: string
 }
 
 export type NavLink = {
@@ -27,7 +25,7 @@ export type SocialLink = {
 }
 
 export type Favicon = {
-  png: string
+  src: string
   appleTouchIcon: string
   appTitle: string
 }

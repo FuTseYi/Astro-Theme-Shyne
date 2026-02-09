@@ -8,7 +8,6 @@ tags:
     icon: lucide:layout-panel-top
   - label: Maven
     icon: lucide:box
-image: '/public/favicon/logo.png'
 sourceCodeLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'
 siteLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'
 relatedBlogsLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'

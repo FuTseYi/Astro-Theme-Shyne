@@ -6,7 +6,6 @@ tags:
   - astro
   - web-development
   - tutorial
-image: ./assets/no-plan.png
 order: 1
 draft: false
 ---

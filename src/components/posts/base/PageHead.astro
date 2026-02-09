@@ -1,5 +1,5 @@
 ---
-import { SITE } from '@/config'
+import { FAVICON, SITE } from '@/config'
 
 interface Props {
   title?: string
@@ -13,7 +13,7 @@ const {
   noindex = false,
 } = Astro.props
 const siteUrl = Astro.url.origin
-const image = new URL(SITE.defaultPostBanner, siteUrl)
+const image = new URL(FAVICON.src, siteUrl)
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl)
 ---
 

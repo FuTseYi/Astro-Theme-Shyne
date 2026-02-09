@@ -1,5 +1,5 @@
 ---
-import { SITE } from '@/config'
+import { FAVICON, SITE } from '@/config'
 import { isSubpost } from '@/lib/data-utils'
 import type { CollectionEntry } from 'astro:content'
 
@@ -12,7 +12,7 @@ const { post } = Astro.props
 const title = post.data.title || SITE.title
 const description = post.data.description || SITE.description
 const siteUrl = Astro.url.origin
-const image = new URL(SITE.defaultPostBanner, siteUrl)
+const image = new URL(FAVICON.src, siteUrl)
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl)
 const author = 'infinull'
 ---
@@ -26,12 +26,7 @@ const author = 'infinull'
 
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta
-  property="og:image"
-  content={post?.data?.image?.src
-    ? new URL(post.data.image.src, siteUrl).toString()
-    : image.toString()}
-/>
+<meta property="og:image" content={image.toString()} />
 <meta property="og:image:alt" content={title} />
 <meta property="og:type" content="website" />
 <meta property="og:locale" content={SITE.locale} />
@@ -41,12 +36,7 @@ const author = 'infinull'
 
 <meta name="twitter:title" content={title} />
 <meta name="twitter:description" content={description} />
-<meta
-  property="twitter:image"
-  content={post?.data?.image?.src
-    ? new URL(post.data.image.src, siteUrl).toString()
-    : image.toString()}
-/>
+<meta property="twitter:image" content={image.toString()} />
 <meta name="twitter:image:alt" content={title} />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:creator" content={author} />
