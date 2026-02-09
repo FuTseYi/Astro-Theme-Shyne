@@ -11,7 +11,7 @@ tags:
   - label: NPM
     icon: lucide:package
 sourceCodeLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'
-siteLink: 'https://github.com/FuTseYi/Astro-Theme-Shyne'
+siteLink: 
 relatedBlogsLink: 
 startDate: '2024-01-13'
 endDate: '2024-06-20'

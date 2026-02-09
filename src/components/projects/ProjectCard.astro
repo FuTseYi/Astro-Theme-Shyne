@@ -32,87 +32,96 @@ const getDateRange = () => {
 }
 
 const dateRange = getDateRange()
+
+// 按钮布局方式：统一居中显示
+const buttonLayoutClass = 'justify-center gap-2'
 ---
 
 <div
   id={entry.id}
   class="flex scroll-mt-20 flex-col overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-xl"
 >
-  <div class="flex flex-col gap-3 p-4">
-    <div class="flex grow flex-col gap-3">
-      <div>
-        <h3 class="mb-1 text-lg font-bold">
-          {entry.data.name}
-        </h3>
-        {
-          dateRange && (
-            <p class="text-muted-foreground mb-1.5 text-xs font-semibold">
-              {dateRange}
-            </p>
-          )
-        }
-        <p class="text-muted-foreground mb-1.5 text-sm">
-          {entry.data.description}
-        </p>
-        {
-          entry.data.tags && entry.data.tags.length > 0 && (
-            <div class="flex flex-wrap gap-2">
-              {entry.data.tags.map((tag: { icon?: string; label: string }) => (
-                <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
-                  {tag.icon && <Icon name={tag.icon} class="size-2.5" />}
-                  {tag.label}
-                </span>
-              ))}
-            </div>
-          )
-        }
-      </div>
+  <div class="flex gap-4 p-4">
+    <!-- 左侧内容区域 -->
+    <div class="flex flex-1 flex-col gap-3">
+      <h3 class="text-lg font-bold">
+        {entry.data.name}
+      </h3>
+
+      <p class="text-muted-foreground text-sm">
+        {entry.data.description}
+      </p>
+
+      {
+        entry.data.tags && entry.data.tags.length > 0 && (
+          <div class="flex flex-wrap gap-2">
+            {entry.data.tags.map((tag: { icon?: string; label: string }) => (
+              <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
+                {tag.icon && <Icon name={tag.icon} class="size-2.5" />}
+                {tag.label}
+              </span>
+            ))}
+          </div>
+        )
+      }
     </div>
-    {
-      (entry.data.sourceCodeLink ||
-        entry.data.siteLink ||
-        entry.data.relatedBlogsLink) && (
-        <div class="mt-3 flex flex-wrap gap-1.5 border-t pt-3">
-          {entry.data.sourceCodeLink && (
-            <AnimatedButton
-              href={entry.data.sourceCodeLink}
-              external
-              variant="outline"
-              size="sm"
-              class="w-full flex-1 grow justify-center"
-              icon="lucide:code"
-              iconPosition="left"
-            >
-              Source Code
-            </AnimatedButton>
-          )}
-          {entry.data.relatedBlogsLink && (
-            <AnimatedButton
-              href={entry.data.relatedBlogsLink}
-              variant="outline"
-              size="sm"
-              class="w-full flex-1 grow justify-center"
-              icon="lucide:book-open"
-              iconPosition="left"
-            >
-              Related Blogs
-            </AnimatedButton>
-          )}
-          {entry.data.siteLink && (
-            <AnimatedButton
-              href={entry.data.siteLink}
-              external
-              variant="outline"
-              size="sm"
-              class="w-full flex-1 grow justify-center"
-              icon="lucide:arrow-right"
-              iconPosition="right"
-            >
-              Visit Site
-            </AnimatedButton>
-          )}
-        </div>
-      )
-    }
+
+    <!-- 右侧时间和按钮区域 -->
+    <div class="flex flex-col gap-3">
+      {
+        dateRange && (
+          <p class="text-muted-foreground text-center text-xs font-semibold whitespace-nowrap">
+            {dateRange}
+          </p>
+        )
+      }
+
+      {
+        (entry.data.sourceCodeLink ||
+          entry.data.siteLink ||
+          entry.data.relatedBlogsLink) && (
+          <div class={`flex flex-1 flex-col ${buttonLayoutClass}`}>
+            {entry.data.sourceCodeLink && (
+              <AnimatedButton
+                href={entry.data.sourceCodeLink}
+                external
+                variant="outline"
+                size="sm"
+                class="whitespace-nowrap"
+                icon="lucide:code"
+                iconPosition="left"
+              >
+                Source Code
+              </AnimatedButton>
+            )}
+            {entry.data.relatedBlogsLink && (
+              <AnimatedButton
+                href={entry.data.relatedBlogsLink}
+                variant="outline"
+                size="sm"
+                class="whitespace-nowrap"
+                icon="lucide:book-open"
+                iconPosition="left"
+              >
+                Related Blogs
+              </AnimatedButton>
+            )}
+            {entry.data.siteLink && (
+              <AnimatedButton
+                href={entry.data.siteLink}
+                external
+                variant="outline"
+                size="sm"
+                class="whitespace-nowrap"
+                icon="lucide:arrow-right"
+                iconPosition="right"
+              >
+                Visit Site
+              </AnimatedButton>
+            )}
+          </div>
+        )
+      }
+    </div>
   </div>
 </div>
