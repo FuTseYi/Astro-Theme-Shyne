@@ -36,29 +36,80 @@ import { Icon } from 'astro-icon/components'
     </p>
   </div>
 
-  <div class="m-0 p-0">
+  <div class="m-0 flex w-full justify-center p-0">
     <!-- footer Astro-Theme-Shyne typography -->
     <div
-      class="text-accent pointer-events-none m-0 mx-auto max-w-screen-md p-0 text-center leading-none font-bold whitespace-nowrap select-none"
-      style="font-size: clamp(0rem, 5vw, 12.4rem); transform: translateY(10%);"
+      class="text-accent pointer-events-none m-0 p-0 text-center leading-none font-bold whitespace-nowrap select-none"
+      style="font-size: clamp(0rem, 5vw, 12.4rem); transform: translateY(30%);"
     >
       Astro-Theme-Shyne
     </div>
   </div>
-  <div class="w-full px-2">
-    <!-- footer bar code svg -->
+  <div class="relative -mt-8 w-full overflow-hidden" style="height: 120px;">
+    <!-- 波浪动画效果 -->
     <svg
-      width="1422"
-      height="87"
-      viewBox="0 214 1422 87"
-      fill="none"
+      class="absolute bottom-0 left-0 w-full"
       xmlns="http://www.w3.org/2000/svg"
-      class="h-auto w-full"
+      viewBox="0 0 1440 120"
+      preserveAspectRatio="none"
+      style="height: 120px;"
     >
+      <!-- 第一层波浪 -->
       <path
-        d="M0.753052 301H48.2848L48.5317 214.445H1L0.753052 301ZM81.953 301H707.788V214.692L82.1999 214.445L81.953 301ZM756.903 214.742C756.704 214.938 756.556 252.5 756.556 252.5L756.309 301H768.688V214.692L762.943 214.543C759.824 214.493 757.102 214.594 756.903 214.742ZM794.435 301H818.2L818.447 214.445H794.681L794.435 301ZM844.54 214.79C844.341 214.938 844.192 262 844.192 262L843.945 301H899.4L899.647 214.445H872.266C857.165 214.445 844.688 214.593 844.54 214.79ZM925.739 214.742C925.542 214.938 925.394 268 925.394 268L925.147 301H937.524V214.692L931.781 214.543C928.661 214.493 925.938 214.594 925.739 214.742ZM963.271 301H1018.72L1018.72 214.692L991.145 214.543L963.518 214.445L963.271 301ZM1044.47 301H1179.64L1179.64 214.692L1044.72 214.445L1044.47 301ZM1286.58 301H1421.75V214.692L1286.83 214.445L1286.58 301Z"
+        d="M0,64 C240,100 480,48 720,64 C960,80 1200,32 1440,64 L1440,120 L0,120 Z"
         fill="var(--accent)"
-        opacity="1"></path>
+        opacity="0.2"
+        class="wave-path-1"
+      >
+        <animate
+          attributeName="d"
+          dur="8s"
+          repeatCount="indefinite"
+          values="
+            M0,64 C240,100 480,48 720,64 C960,80 1200,32 1440,64 L1440,120 L0,120 Z;
+            M0,48 C240,32 480,80 720,48 C960,32 1200,100 1440,48 L1440,120 L0,120 Z;
+            M0,64 C240,100 480,48 720,64 C960,80 1200,32 1440,64 L1440,120 L0,120 Z
+          "
+        ></animate>
+      </path>
+
+      <!-- 第二层波浪 -->
+      <path
+        d="M0,80 C240,64 480,96 720,80 C960,64 1200,96 1440,80 L1440,120 L0,120 Z"
+        fill="var(--accent)"
+        opacity="0.3"
+        class="wave-path-2"
+      >
+        <animate
+          attributeName="d"
+          dur="6s"
+          repeatCount="indefinite"
+          values="
+            M0,80 C240,64 480,96 720,80 C960,64 1200,96 1440,80 L1440,120 L0,120 Z;
+            M0,96 C240,80 480,64 720,96 C960,80 1200,64 1440,96 L1440,120 L0,120 Z;
+            M0,80 C240,64 480,96 720,80 C960,64 1200,96 1440,80 L1440,120 L0,120 Z
+          "
+        ></animate>
+      </path>
+
+      <!-- 第三层波浪 -->
+      <path
+        d="M0,100 C240,108 480,92 720,100 C960,108 1200,92 1440,100 L1440,120 L0,120 Z"
+        fill="var(--accent)"
+        opacity="0.5"
+        class="wave-path-3"
+      >
+        <animate
+          attributeName="d"
+          dur="10s"
+          repeatCount="indefinite"
+          values="
+            M0,100 C240,108 480,92 720,100 C960,108 1200,92 1440,100 L1440,120 L0,120 Z;
+            M0,92 C240,100 480,108 720,92 C960,100 1200,108 1440,92 L1440,120 L0,120 Z;
+            M0,100 C240,108 480,92 720,100 C960,108 1200,92 1440,100 L1440,120 L0,120 Z
+          "
+        ></animate>
+      </path>
     </svg>
   </div>
 </footer>
