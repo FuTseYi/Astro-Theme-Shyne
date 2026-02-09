@@ -1,12 +1,15 @@
 ---
 import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import Link from '@/components/base/Link.astro'
 import PageHead from '@/components/posts/base/PageHead.astro'
 import BlogCard from '@/components/posts/card/BlogCard.astro'
+import { badgeVariants } from '@/components/ui/badge'
 import PaginationComponent from '@/components/ui/pagination'
 import { SITE } from '@/config'
 import Layout from '@/layouts/Layout.astro'
-import { getAllPosts, groupPostsByYear } from '@/lib/data-utils'
+import { getAllPosts, getSortedTags, groupPostsByYear } from '@/lib/data-utils'
 import type { PaginateFunction } from 'astro'
+import { Icon } from 'astro-icon/components'
 
 export async function getStaticPaths({
   paginate,
@@ -21,6 +24,7 @@ const { page } = Astro.props
 
 const postsByYear = groupPostsByYear(page.data)
 const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a))
+const sortedTags = await getSortedTags()
 ---
 
 <Layout class="max-w-3xl">
@@ -32,20 +36,64 @@ const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a))
     ]}
   />
 
-  <div class="flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
+  <div class="grid gap-x-8 gap-y-8 sm:grid-cols-[3fr_1fr]">
+    <!-- 左侧文章列表 -->
+    <div class="flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
+      {
+        years.map((year) => (
+          <section class="flex flex-col gap-y-4">
+            <div class="font-medium">{year}</div>
+            <ul class="flex flex-col gap-4">
+              {postsByYear[year].map((blogEntry) => (
+                <li>
+                  <BlogCard entry={blogEntry} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+
+    <!-- 右侧Tags侧边栏 (仅桌面端显示) -->
     {
-      years.map((year) => (
-        <section class="flex flex-col gap-y-4">
-          <div class="font-medium">{year}</div>
-          <ul class="flex flex-col gap-4">
-            {postsByYear[year].map((blogEntry) => (
-              <li>
-                <BlogCard entry={blogEntry} />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ))
+      sortedTags.length > 0 && (
+        <aside class="hidden sm:block">
+          <div class="sticky top-20">
+            <h2 class="mb-4 flex items-center text-lg font-medium">
+              <Icon name="lucide:tags" class="mr-2 size-5" />
+              Tags
+            </h2>
+            <ul class="flex flex-wrap gap-2">
+              {sortedTags.slice(0, 30).map(({ tag, count }) => (
+                <li>
+                  <Link
+                    href={`/tags/${tag}`}
+                    class={badgeVariants({
+                      variant: 'muted',
+                      class: 'bg-muted/50 text-sm',
+                    })}
+                  >
+                    <Icon name="lucide:hash" class="size-3" />
+                    {tag}
+                    <span class="text-muted-foreground ml-1">({count})</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            {sortedTags.length > 30 && (
+              <div class="mt-4 text-right">
+                <Link
+                  href="/tags"
+                  class="text-muted-foreground hover:text-foreground text-sm transition-colors"
+                >
+                  View all →
+                </Link>
+              </div>
+            )}
+          </div>
+        </aside>
+      )
     }
   </div>
 
@@ -55,4 +103,43 @@ const years = Object.keys(postsByYear).sort((a, b) => parseInt(b) - parseInt(a))
     baseUrl="/blog/"
     client:load
   />
+
+  <!-- 移动端Tags (显示在分页下方) -->
+  {
+    sortedTags.length > 0 && (
+      <div class="mt-8 sm:hidden">
+        <h2 class="mb-4 flex items-center text-lg font-medium">
+          <Icon name="lucide:tags" class="mr-2 size-5" />
+          Tags
+        </h2>
+        <ul class="flex flex-wrap gap-2">
+          {sortedTags.slice(0, 30).map(({ tag, count }) => (
+            <li>
+              <Link
+                href={`/tags/${tag}`}
+                class={badgeVariants({
+                  variant: 'muted',
+                  class: 'bg-muted/50 text-sm',
+                })}
+              >
+                <Icon name="lucide:hash" class="size-3" />
+                {tag}
+                <span class="text-muted-foreground ml-1">({count})</span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+        {sortedTags.length > 30 && (
+          <div class="mt-4 text-right">
+            <Link
+              href="/tags"
+              class="text-muted-foreground hover:text-foreground text-sm transition-colors"
+            >
+              View all →
+            </Link>
+          </div>
+        )}
+      </div>
+    )
+  }
 </Layout>
