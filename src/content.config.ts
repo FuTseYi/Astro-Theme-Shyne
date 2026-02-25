@@ -4,27 +4,27 @@ import { defineCollection, z } from 'astro:content'
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
   schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    date: z.coerce.date(),
+    title: z.string().nullish(),
+    description: z.string().nullish(),
+    date: z.coerce.date().nullish(),
     tags: z.array(z.string()).nullish(),
     order: z.number().nullish(),
-    draft: z.boolean().optional(),
+    draft: z.boolean().nullish(),
   }),
 })
 
 const projects = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/projects' }),
   schema: z.object({
-    name: z.string(),
-    description: z.string(),
+    name: z.string().nullish(),
+    description: z.string().nullish(),
     startDate: z.coerce.date().nullish(),
     endDate: z.coerce.date().nullish(),
     sourceCodeLink: z.string().url().nullish().or(z.literal('')),
     siteLink: z.string().url().nullish().or(z.literal('')),
     relatedBlogsLink: z.string().nullish().or(z.literal('')),
     tags: z.array(z.string()).nullish(),
-    featured: z.boolean().optional().default(false),
+    featured: z.boolean().nullish(),
     order: z.number().nullish(),
   }),
 })
@@ -33,12 +33,12 @@ const experience = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/experience' }),
   schema: ({ image }) =>
     z.object({
-      role: z.string(),
-      company: z.string(),
-      description: z.string(),
-      startDate: z.coerce.date(),
+      role: z.string().nullish(),
+      company: z.string().nullish(),
+      description: z.string().nullish(),
+      startDate: z.coerce.date().nullish(),
       endDate: z.coerce.date().nullish(),
-      location: z.string(),
+      location: z.string().nullish(),
       companyLogo: image().nullish(),
       companyUrl: z.string().url().nullish().or(z.literal('')),
       tags: z.array(z.string()).nullish(),
