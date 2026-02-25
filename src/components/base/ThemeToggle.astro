@@ -17,12 +17,14 @@ import { Icon } from 'astro-icon/components'
 </Button>
 
 <script is:inline data-astro-rerun>
-  const getTheme = () =>
-    matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  const mode = localStorage?.getItem('theme-mode') ?? 'auto'
-  const theme = mode === 'auto' ? getTheme() : mode
-  document.documentElement.setAttribute('data-theme', theme)
-  document.documentElement.setAttribute('data-theme-mode', mode)
+  ;(() => {
+    const initialMode = localStorage?.getItem('theme-mode') ?? 'auto'
+    const prefersDark = matchMedia('(prefers-color-scheme: dark)').matches
+    const initialTheme =
+      initialMode === 'auto' ? (prefersDark ? 'dark' : 'light') : initialMode
+    document.documentElement.setAttribute('data-theme', initialTheme)
+    document.documentElement.setAttribute('data-theme-mode', initialMode)
+  })()
 </script>
 
 <script>

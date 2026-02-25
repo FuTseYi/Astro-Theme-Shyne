@@ -92,7 +92,7 @@ const allSearchData = [...postsData, ...projectsData]
       const searchInitial = document.getElementById('search-initial')
 
       if (!searchInput || !searchResults || !searchEmpty || !searchInitial) {
-        console.error('Search elements not found')
+        // Can happen during prefetch / partial renders: just skip initialization
         return
       }
 
@@ -102,15 +102,18 @@ const allSearchData = [...postsData, ...projectsData]
       }
 
       function escapeHtml(text) {
+        if (text == null) return ''
         const div = document.createElement('div')
-        div.textContent = text
+        div.textContent = text.toString()
         return div.innerHTML
       }
 
       function highlightMatch(text, query) {
-        if (!query.trim()) return escapeHtml(text)
+        if (text == null) return ''
+        const safeText = text.toString()
+        if (!query.trim()) return escapeHtml(safeText)
         const regex = new RegExp(`(${escapeRegex(query)})`, 'gi')
-        const parts = text.split(regex)
+        const parts = safeText.split(regex)
         return parts
           .map((part, i) => {
             if (i % 2 === 1) {
@@ -140,7 +143,7 @@ const allSearchData = [...postsData, ...projectsData]
       }
 
       function searchItems(query) {
-        const normalizedQuery = query.toLowerCase().trim()
+        const normalizedQuery = (query || '').toLowerCase().trim()
 
         if (!normalizedQuery) {
           searchResults.innerHTML = ''
@@ -152,12 +155,16 @@ const allSearchData = [...postsData, ...projectsData]
         searchInitial.classList.add('hidden')
 
         const matchingItems = allSearchData.filter((item) => {
-          const titleMatch = item.title.toLowerCase().includes(normalizedQuery)
-          const descriptionMatch = item.description
+          const title = (item.title || '').toString().toLowerCase()
+          const description = (item.description || '')
+            .toString()
             .toLowerCase()
-            .includes(normalizedQuery)
-          const tagsMatch = item.tags.some((tag) =>
-            tag.toLowerCase().includes(normalizedQuery),
+          const tags = Array.isArray(item.tags) ? item.tags : []
+
+          const titleMatch = title.includes(normalizedQuery)
+          const descriptionMatch = description.includes(normalizedQuery)
+          const tagsMatch = tags.some((tag) =>
+            (tag || '').toString().toLowerCase().includes(normalizedQuery),
           )
           return titleMatch || descriptionMatch || tagsMatch
         })
@@ -180,7 +187,7 @@ const allSearchData = [...postsData, ...projectsData]
                   <h3 class="text-lg font-medium">${highlightMatch(item.title, normalizedQuery)}</h3>
                   <span class="text-xs text-muted-foreground">${getTypeLabel(item.type)}</span>
                 </div>
-                <p class="text-muted-foreground mb-2 text-sm">${highlightMatch(item.description, normalizedQuery)}</p>
+                <p class="text-muted-foreground mb-2 text-sm">${highlightMatch(item.description || '', normalizedQuery)}</p>
                 ${
                   item.tags.length > 0
                     ? `<div class="flex flex-wrap gap-2">
