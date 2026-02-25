@@ -1,10 +1,10 @@
 ---
 // Astro
-import { Icon } from 'astro-icon/components'
 import { Image } from 'astro:assets'
 
 // Components
 import Link from './Link.astro'
+import { Badge } from '@/components/ui/badge'
 
 // Utils & Types
 import { cn } from '@/lib/utils'
@@ -119,17 +119,17 @@ const sortedExperiences = experiences.sort((a, b) => {
                 {exp.data.description}
               </p>
 
-              {/* Tags */}
+              {/* Tags - same structure as blog: array of strings */}
               {exp.data.tags && exp.data.tags.length > 0 && (
-                <div class="mt-4 flex flex-wrap gap-2">
-                  {exp.data.tags.map(
-                    (tag: { icon?: string; label: string }) => (
-                      <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
-                        {tag.icon && <Icon name={tag.icon} class="size-2.5" />}
-                        {tag.label}
-                      </span>
-                    ),
-                  )}
+                <div class="mt-4 flex flex-wrap gap-1.5">
+                  {exp.data.tags.map((tag: string) => (
+                    <Badge
+                      variant="muted"
+                      className="flex bg-muted/30 border border-border"
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
                 </div>
               )}
             </div>

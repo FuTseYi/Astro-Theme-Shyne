@@ -1,6 +1,6 @@
 ---
 import AnimatedButton from '@/components/base/AnimatedButton.astro'
-import { Icon } from 'astro-icon/components'
+import { Badge } from '@/components/ui/badge'
 import type { CollectionEntry } from 'astro:content'
 
 interface Props {
@@ -54,12 +54,14 @@ const buttonLayoutClass = 'justify-center gap-2'
 
       {
         entry.data.tags && entry.data.tags.length > 0 && (
-          <div class="flex flex-wrap gap-2">
-            {entry.data.tags.map((tag: { icon?: string; label: string }) => (
-              <span class="bg-muted/90 text-muted-foreground/80 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs">
-                {tag.icon && <Icon name={tag.icon} class="size-2.5" />}
-                {tag.label}
-              </span>
+          <div class="flex flex-wrap gap-1.5">
+            {entry.data.tags.map((tag: string) => (
+              <Badge
+                variant="muted"
+                className="flex bg-muted/30 border border-border"
+              >
+                {tag}
+              </Badge>
             ))}
           </div>
         )
