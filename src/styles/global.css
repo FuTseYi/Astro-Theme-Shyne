@@ -423,3 +423,21 @@
   mask-position: center;
   mask-repeat: no-repeat;
 }
+
+/* Page enter animation - fade in and slide up */
+@keyframes fade-in-up {
+  0% {
+    transform: translateY(2rem);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate {
+  opacity: 0;
+  animation: 300ms fade-in-up;
+  animation-fill-mode: forwards;
+}
