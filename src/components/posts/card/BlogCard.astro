@@ -23,11 +23,36 @@ const subpostCount = !isSubpost(entry.id) ? await getSubpostCount(entry.id) : 0
 <div
   class="hover:bg-muted/50 overflow-hidden rounded-lg border border-border transition-all duration-300 ease-in-out hover:scale-[1.01] hover:shadow-lg"
 >
-  <Link href={`/${entry.collection}/${entry.id}`} class="flex flex-col">
+  <Link href={`/${entry.collection}/${entry.id}`} class="group flex flex-col hover:text-primary">
     <div class="flex flex-col p-4">
-      <h3 class="mb-1 text-lg font-bold">
-        {entry.data.title}
-      </h3>
+      <div class="mb-1 flex items-center justify-between gap-2">
+        <h3 class="text-lg font-bold">
+          {entry.data.title}
+        </h3>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          class="my-1 stroke-muted-foreground transition-colors duration-300 group-hover:stroke-primary"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line
+            x1="5"
+            y1="12"
+            x2="19"
+            y2="12"
+            class="translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100"
+          ></line>
+          <polyline
+            points="12 5 19 12 12 19"
+            class="translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1"
+          ></polyline>
+        </svg>
+      </div>
       <p class="text-muted-foreground mb-1.5 text-sm">
         {entry.data.description}
       </p>
