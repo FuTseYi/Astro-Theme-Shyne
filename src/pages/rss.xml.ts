@@ -30,15 +30,15 @@ function createRssItem(post: CollectionEntry<'blog'>, siteUrl: string) {
 
   // RSS content: banner image, description, and read more link
   const content = `
-    <img src="${imageUrl}" alt="${post.data.title}" />
-    <p>${post.data.description}</p>
+    <img src="${imageUrl}" alt="${post.data.title ?? ''}" />
+    <p>${post.data.description ?? ''}</p>
     <p><a href="${postUrl}">Read more →</a></p>
   `.trim()
 
   return {
-    title: post.data.title,
-    description: post.data.description,
-    pubDate: post.data.date,
+    title: post.data.title ?? '',
+    description: post.data.description ?? undefined,
+    pubDate: post.data.date ?? undefined,
     link: `/blog/${post.id}/`,
     content,
     customData: `<enclosure url="${imageUrl}" type="${imageType}" />`,

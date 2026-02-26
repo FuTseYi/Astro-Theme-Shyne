@@ -28,14 +28,14 @@ if (!project) {
 <Layout class="max-w-3xl">
   <PageHead
     slot="head"
-    title={project.data.name}
-    description={project.data.description}
+    title={project.data.name ?? ''}
+    description={project.data.description ?? undefined}
   />
   <Breadcrumbs
     items={[
       { label: 'Projects', href: '/projects', icon: 'lucide:briefcase' },
       {
-        label: project.data.name,
+        label: project.data.name ?? '',
         href: `/projects/${currentProjectId}`,
         icon: 'lucide:code',
       },

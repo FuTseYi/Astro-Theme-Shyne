@@ -7,7 +7,6 @@ import SubpostsSidebar from '@/components/posts/base/SubpostsSidebar.astro'
 import TOCHeader from '@/components/posts/toc/TOCHeader.astro'
 import TOCSidebar from '@/components/posts/toc/TOCSidebar.astro'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import Layout from '@/layouts/Layout.astro'
 import {
   getAdjacentPosts,
@@ -52,6 +51,7 @@ const combinedReadingTime =
     : null
 
 const tocSections = await getTOCSections(currentPostId)
+const formattedDate = post.data.date ? formatDate(post.data.date) : ''
 ---
 
 <Layout>
@@ -84,19 +84,19 @@ const tocSections = await getTOCSections(currentPostId)
             ? [
                 {
                   href: `/blog/${parentPost.id}`,
-                  label: parentPost.data.title,
+                  label: parentPost.data.title ?? '',
                   icon: 'lucide:book-open',
                 },
                 {
                   href: `/blog/${currentPostId}`,
-                  label: post.data.title,
+                  label: post.data.title ?? '',
                   icon: 'lucide:file-text',
                 },
               ]
             : [
                 {
                   href: `/blog/${currentPostId}`,
-                  label: post.data.title,
+                  label: post.data.title ?? '',
                   icon: 'lucide:book-open-text',
                 },
               ]),
@@ -118,7 +118,7 @@ const tocSections = await getTOCSections(currentPostId)
         </p>
 
         <p class="text-muted-foreground/80 mb-6 text-sm">
-          <span>{formatDate(post.data.date)}</span> &nbsp;•&nbsp; {
+          <span>{formattedDate}</span> &nbsp;•&nbsp; {
             postReadingTime
           }
           {
@@ -360,23 +360,25 @@ const tocSections = await getTOCSections(currentPostId)
   <script>
     document.addEventListener('astro:page-load', () => {
       const root = document.getElementById('reading-progress')
-      const circle = root?.querySelector('.progress-ring-circle')
-      const text = root?.querySelector('.progress-text')
+      const circle = root?.querySelector(
+        '.progress-ring-circle',
+      ) as SVGCircleElement | null
+      const text = root?.querySelector('.progress-text') as HTMLElement | null
 
       // 文章内容：本页只有一个主要 article
       const article = document.querySelector('article.prose') || document.querySelector('article')
 
       const r = 24
       const circumference = 2 * Math.PI * r
-      let scrollTimer = null
+      let scrollTimer: number | null = null
 
       if (!root || !circle || !text || !article) return
 
-      const setVisible = (visible) => {
+      const setVisible = (visible: boolean) => {
         root.classList.toggle('hidden', !visible)
       }
 
-      const setShowMode = (mode) => {
+      const setShowMode = (mode: 'percent' | 'arrow') => {
         root.setAttribute('data-show', mode)
       }
 

@@ -14,7 +14,7 @@ const postsData = allPosts.map((post) => ({
   title: post.data.title,
   description: post.data.description,
   tags: post.data.tags || [],
-  date: post.data.date.toISOString(),
+  date: post.data.date?.toISOString() || '',
   slug: `/${post.collection}/${post.id}`,
   type: 'post',
 }))
@@ -24,7 +24,7 @@ const projectsData = allProjects.map((project) => ({
   id: project.id,
   title: project.data.name,
   description: project.data.description,
-  tags: project.data.tags?.map((tag) => tag.label) || [],
+  tags: project.data.tags || [],
   slug: `/projects/${project.id}`,
   type: 'project',
 }))

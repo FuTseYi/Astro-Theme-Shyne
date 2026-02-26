@@ -5,7 +5,11 @@ export async function getAllPosts(): Promise<CollectionEntry<'blog'>[]> {
   const posts = await getCollection('blog')
   return posts
     .filter((post) => !post.data.draft && !isSubpost(post.id))
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+    .sort((a, b) => {
+      const dateA = a.data.date?.valueOf() ?? 0
+      const dateB = b.data.date?.valueOf() ?? 0
+      return dateB - dateA
+    })
 }
 
 export async function getAllPostsAndSubposts(): Promise<
@@ -14,7 +18,11 @@ export async function getAllPostsAndSubposts(): Promise<
   const posts = await getCollection('blog')
   return posts
     .filter((post) => !post.data.draft)
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+    .sort((a, b) => {
+      const dateA = a.data.date?.valueOf() ?? 0
+      const dateB = b.data.date?.valueOf() ?? 0
+      return dateB - dateA
+    })
 }
 
 export async function getAllProjects(): Promise<CollectionEntry<'projects'>[]> {
@@ -112,7 +120,9 @@ export async function getAdjacentPosts(currentId: string): Promise<{
           !post.data.draft,
       )
       .sort((a, b) => {
-        const dateDiff = a.data.date.valueOf() - b.data.date.valueOf()
+        const dateA = a.data.date?.valueOf() ?? 0
+        const dateB = b.data.date?.valueOf() ?? 0
+        const dateDiff = dateA - dateB
         if (dateDiff !== 0) return dateDiff
 
         const orderA = a.data.order ?? 0
@@ -192,7 +202,9 @@ export async function getSubpostsForParent(
         getParentId(post.id) === parentId,
     )
     .sort((a, b) => {
-      const dateDiff = a.data.date.valueOf() - b.data.date.valueOf()
+      const dateA = a.data.date?.valueOf() ?? 0
+      const dateB = b.data.date?.valueOf() ?? 0
+      const dateDiff = dateA - dateB
       if (dateDiff !== 0) return dateDiff
 
       const orderA = a.data.order ?? 0
@@ -206,7 +218,9 @@ export function groupPostsByYear(
 ): Record<string, CollectionEntry<'blog'>[]> {
   return posts.reduce(
     (acc: Record<string, CollectionEntry<'blog'>[]>, post) => {
-      const year = post.data.date.getFullYear().toString()
+      const year = post.data.date
+        ? post.data.date.getFullYear().toString()
+        : 'Unknown'
       ;(acc[year] ??= []).push(post)
       return acc
     },
@@ -315,7 +329,7 @@ export async function getTOCSections(postId: string): Promise<TOCSection[]> {
     if (subpostHeadings.length > 0) {
       sections.push({
         type: 'subpost',
-        title: subpost.data.title,
+        title: subpost.data.title ?? '',
         headings: subpostHeadings.map((heading, index) => ({
           slug: heading.slug,
           text: heading.text,
