@@ -38,24 +38,55 @@ const experiences = await getAllExperiences()
   <!-- Hero Section -->
   <section class="bg-grid-pattern">
     <div
-      class="flex flex-col items-center gap-6 p-6 md:flex-row md:items-start"
+      class="flex flex-col items-center gap-6 px-6 pt-6 pb-2 md:flex-row md:items-center"
     >
-      <div class="flex flex-1 flex-col items-center space-y-1.5 md:items-start">
+      <div
+        class="flex flex-1 flex-col items-center space-y-1.5 md:items-start"
+      >
         <h3
           class="text-accent font-mudstone-sans text-center text-8xl leading-none font-extrabold md:text-left md:text-9xl"
         >
           Shyne
           <br />
-          <span class="-mt-2 block text-7xl md:text-6xl"> Astro-Theme. </span>
+          <span class="-mt-2 block text-7xl md:text-6xl">Astro-Theme.</span>
         </h3>
         <p
           class="text-muted-foreground text-l mt-2 text-center font-serif md:text-left"
         >
-          Simple <span class="text-xs">✦</span> Fast <span class="text-xs"
-            >✦</span
-          >
-          Modern
+          Simple / Fast / Modern
         </p>
+        <p class="text-l text-muted-foreground mb-2 mt-4 text-center font-serif md:text-left">
+          Currently working on enterprise Java backends, but I juggle multiple
+          stacks when the problem demands it. I also ✍🏻 <Link
+            href="/blog"
+            class="text-foreground"
+            underline
+            external>Blog</Link
+          > the cool stuff I find worth sharing with the world.
+        </p>
+        <div class="mt-8 flex flex-col items-center gap-8 md:items-start">
+          <div class="flex flex-wrap items-center justify-center gap-3">
+            <!-- CV Section -->
+            <AnimatedButton
+              href="/static/common/sedhumadhav-cv.pdf"
+              icon="lucide:download"
+              external
+              iconPosition="left"
+              variant="default"
+            >
+              Resume
+            </AnimatedButton>
+            <AnimatedButton
+              href="/about"
+              icon="lucide:arrow-right"
+              iconPosition="right"
+              variant="outline"
+            >
+              Read more
+            </AnimatedButton>
+          </div>
+          <SocialIcons links={SOCIAL_LINKS} />
+        </div>
       </div>
       <div
         id="profile-image-container"
@@ -63,40 +94,13 @@ const experiences = await getAllExperiences()
       >
         <img
           src="/favicon/logo.png"
-          alt="Shyne"
           class="relative block h-auto w-48 border border-gray-200"
         />
         <p
-          class="font-caveat absolute bottom-2 left-1/2 -translate-x-1/2 text-sm whitespace-nowrap text-gray-800"
+          class="font-caveat absolute bottom-2 left-1/2 -translate-x-1/2 text-sm text-gray-800"
         >
           yeah thats me :)
         </p>
-      </div>
-    </div>
-    <div class="px-6">
-      <p class="text-l text-muted-foreground mb-2 font-serif">Content</p>
-      <div class="mt-8 flex flex-col items-center gap-8 md:items-start">
-        <div class="flex flex-wrap items-center justify-center gap-3">
-          <!-- CV Section -->
-          <AnimatedButton
-            href="/static/common/sedhumadhav-cv.pdf"
-            icon="lucide:download"
-            external
-            iconPosition="left"
-            variant="default"
-          >
-            Resume
-          </AnimatedButton>
-          <AnimatedButton
-            href="/about"
-            icon="lucide:arrow-right"
-            iconPosition="right"
-            variant="outline"
-          >
-            Read more
-          </AnimatedButton>
-        </div>
-        <SocialIcons links={SOCIAL_LINKS} />
       </div>
     </div>
   </section>
