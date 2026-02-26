@@ -193,42 +193,243 @@ const tocSections = await getTOCSections(currentPostId)
     />
   </section>
 
-  <Button
-    variant="outline"
-    size="icon"
-    className="group fixed right-8 bottom-8 z-50 hidden"
-    id="scroll-to-top"
-    title="Scroll to top"
-    aria-label="Scroll to top"
+  <div
+    id="reading-progress"
+    class="fixed right-8 bottom-8 z-50 hidden size-14 cursor-pointer select-none"
+    role="button"
+    tabindex="0"
+    title="阅读进度 0%"
+    aria-label="回到顶部（阅读进度 0%）"
   >
-    <Icon
-      name="lucide:arrow-up"
-      class="mx-auto size-4 transition-all group-hover:-translate-y-0.5"
-    />
-  </Button>
+    <svg class="progress-ring" viewBox="0 0 56 56" aria-hidden="true">
+      <circle class="progress-ring-bg" cx="28" cy="28" r="24" />
+      <circle class="progress-ring-circle" cx="28" cy="28" r="24" />
+    </svg>
+    <div class="progress-center" aria-hidden="true">
+      <span class="progress-text">0%</span>
+      <span class="progress-arrow">
+        <svg
+          class="progress-arrow-icon"
+          viewBox="0 0 24 24"
+          width="20"
+          height="20"
+          fill="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M6 14l6-6 6 6"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </span>
+    </div>
+  </div>
+
+  <style>
+    #reading-progress {
+      -webkit-tap-highlight-color: transparent;
+      filter: drop-shadow(0 2px 10px color-mix(in oklch, var(--foreground) 10%, transparent));
+      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.2s ease;
+    }
+
+    #reading-progress:hover {
+      transform: scale(1.06);
+    }
+
+    #reading-progress:active {
+      transform: scale(0.96);
+    }
+
+    #reading-progress:focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 2px;
+      border-radius: 9999px;
+    }
+
+    .progress-ring {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .progress-ring-bg {
+      fill: var(--background);
+      stroke: var(--border);
+      stroke-width: 3;
+    }
+
+    .progress-ring-circle {
+      fill: none;
+      /* 使用全局强调色，和站点“主题色”保持一致（会跟随浅色 / 深色） */
+      stroke: var(--accent);
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 150.796; /* 2πr, r=24 */
+      stroke-dashoffset: 150.796;
+      transition: stroke-dashoffset 0.25s ease;
+    }
+
+    .progress-center {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .progress-text,
+    .progress-arrow {
+      grid-area: 1 / 1;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    /* 默认显示百分比 */
+    #reading-progress[data-show='percent'] .progress-text {
+      opacity: 1;
+      transform: scale(1);
+      color: color-mix(in oklch, var(--foreground) 85%, transparent);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    #reading-progress[data-show='percent'] .progress-arrow {
+      opacity: 0;
+      transform: translateY(6px) scale(0.9);
+    }
+
+    /* 停止滚动后显示箭头 */
+    #reading-progress[data-show='arrow'] .progress-text {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.9);
+    }
+    #reading-progress[data-show='arrow'] .progress-arrow {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      color: var(--accent);
+      display: grid;
+      place-items: center;
+    }
+
+    .progress-arrow-icon {
+      display: block;
+    }
+
+    /* 只让图标本体弹跳，避免覆盖容器的 transform（容器负责过渡/缩放/位移） */
+    #reading-progress[data-show='arrow'] .progress-arrow-icon {
+      animation: progress-bounce 1s ease-in-out infinite;
+    }
+
+    @keyframes progress-bounce {
+      0%,
+      100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-4px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #reading-progress,
+      .progress-ring-circle,
+      .progress-text,
+      .progress-arrow,
+      .progress-arrow-icon {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+
+    @media (max-width: 768px) {
+      #reading-progress {
+        right: 20px;
+        bottom: 20px;
+        width: 48px;
+        height: 48px;
+      }
+    }
+  </style>
 
   <script>
     document.addEventListener('astro:page-load', () => {
-      const scrollToTopButton = document.getElementById('scroll-to-top')
+      const root = document.getElementById('reading-progress')
+      const circle = root?.querySelector('.progress-ring-circle')
+      const text = root?.querySelector('.progress-text')
 
-      if (scrollToTopButton) {
-        scrollToTopButton.addEventListener('click', () => {
-          window.scrollTo({ top: 0, behavior: 'smooth' })
-        })
+      // 文章内容：本页只有一个主要 article
+      const article = document.querySelector('article.prose') || document.querySelector('article')
 
-        window.addEventListener('scroll', () => {
-          const scrollY = window.scrollY
-          const maxVisibleScroll =
-            document.documentElement.scrollHeight -
-            window.innerHeight -
-            200
+      const r = 24
+      const circumference = 2 * Math.PI * r
+      let scrollTimer = null
 
-          const shouldHide =
-            scrollY <= 300 || scrollY >= maxVisibleScroll
+      if (!root || !circle || !text || !article) return
 
-          scrollToTopButton.classList.toggle('hidden', shouldHide)
-        })
+      const setVisible = (visible) => {
+        root.classList.toggle('hidden', !visible)
       }
+
+      const setShowMode = (mode) => {
+        root.setAttribute('data-show', mode)
+      }
+
+      const update = () => {
+        const scrollY = window.scrollY
+        const viewportH = window.innerHeight
+
+        const rect = article.getBoundingClientRect()
+        const articleTop = scrollY + rect.top
+        const articleHeight = article.scrollHeight
+
+        // 让进度以“文章区域”为准：进度从文章顶部开始，直到文章底部（减去一屏高度）
+        const start = articleTop
+        const end = Math.max(start + 1, articleTop + articleHeight - viewportH)
+
+        const raw = (scrollY - start) / (end - start)
+        const clamped = Math.min(Math.max(raw, 0), 1)
+        const progress = Math.min(Math.round(clamped * 100), 100)
+
+        // 显示逻辑：进入文章区域后显示；到文章结束（或未进入）隐藏
+        const inRange = scrollY > start && scrollY < end + 200
+        setVisible(inRange)
+
+        // 更新文本/标题/aria
+        text.textContent = `${progress}%`
+        root.title = `阅读进度 ${progress}%`
+        root.setAttribute('aria-label', `回到顶部（阅读进度 ${progress}%）`)
+
+        // 更新圆环
+        circle.style.strokeDasharray = `${circumference}`
+        circle.style.strokeDashoffset = `${circumference - (progress / 100) * circumference}`
+
+        // 滚动时显示百分比，停止 1.5s 后显示箭头
+        setShowMode('percent')
+        if (scrollTimer) window.clearTimeout(scrollTimer)
+        scrollTimer = window.setTimeout(() => {
+          // 仍在范围内才切箭头
+          if (!root.classList.contains('hidden')) setShowMode('arrow')
+        }, 1500)
+      }
+
+      const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+
+      root.addEventListener('click', scrollToTop)
+      root.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          scrollToTop()
+        }
+      })
+
+      window.addEventListener('scroll', update, { passive: true })
+      update()
     })
   </script>
 </Layout>
