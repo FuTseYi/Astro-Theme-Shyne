@@ -210,21 +210,23 @@ const tocSections = await getTOCSections(currentPostId)
   <script>
     document.addEventListener('astro:page-load', () => {
       const scrollToTopButton = document.getElementById('scroll-to-top')
-      const footer = document.querySelector('footer')
 
-      if (scrollToTopButton && footer) {
+      if (scrollToTopButton) {
         scrollToTopButton.addEventListener('click', () => {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         })
 
         window.addEventListener('scroll', () => {
-          const footerRect = footer.getBoundingClientRect()
-          const isFooterVisible = footerRect.top <= window.innerHeight
+          const scrollY = window.scrollY
+          const maxVisibleScroll =
+            document.documentElement.scrollHeight -
+            window.innerHeight -
+            200
 
-          scrollToTopButton.classList.toggle(
-            'hidden',
-            window.scrollY <= 300 || isFooterVisible,
-          )
+          const shouldHide =
+            scrollY <= 300 || scrollY >= maxVisibleScroll
+
+          scrollToTopButton.classList.toggle('hidden', shouldHide)
         })
       }
     })

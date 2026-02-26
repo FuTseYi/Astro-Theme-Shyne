@@ -427,12 +427,12 @@
 /* Page enter animation - fade in and slide up */
 @keyframes fade-in-up {
   0% {
-    transform: translateY(2rem);
     opacity: 0;
+    margin-top: 2rem;
   }
   100% {
-    transform: translateY(0);
     opacity: 1;
+    margin-top: 0;
   }
 }
 
