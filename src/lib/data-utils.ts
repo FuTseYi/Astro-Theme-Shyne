@@ -1,6 +1,47 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content'
 import { readingTime, calculateWordCountFromHtml } from '@/lib/utils'
 
+export function compareExperiences(
+  a: CollectionEntry<'experience'>,
+  b: CollectionEntry<'experience'>,
+): number {
+  const endA = a.data.endDate
+  const endB = b.data.endDate
+
+  const isOngoingA = !endA
+  const isOngoingB = !endB
+
+  // Case 1: both ongoing -> sort by startDate (new -> old)
+  if (isOngoingA && isOngoingB) {
+    const startA = a.data.startDate?.getTime() ?? 0
+    const startB = b.data.startDate?.getTime() ?? 0
+    if (startA !== startB) {
+      return startB - startA
+    }
+    return a.id.localeCompare(b.id)
+  }
+
+  // Case 2: only one ongoing -> ongoing first
+  if (isOngoingA !== isOngoingB) {
+    return isOngoingA ? -1 : 1
+  }
+
+  // Case 3: both have endDate -> endDate (new -> old), then startDate
+  const endTimeA = endA!.getTime()
+  const endTimeB = endB!.getTime()
+  if (endTimeA !== endTimeB) {
+    return endTimeB - endTimeA
+  }
+
+  const startA = a.data.startDate?.getTime() ?? 0
+  const startB = b.data.startDate?.getTime() ?? 0
+  if (startA !== startB) {
+    return startB - startA
+  }
+
+  return a.id.localeCompare(b.id)
+}
+
 export async function getAllPosts(): Promise<CollectionEntry<'blog'>[]> {
   const posts = await getCollection('blog')
   return posts
@@ -28,9 +69,27 @@ export async function getAllPostsAndSubposts(): Promise<
 export async function getAllProjects(): Promise<CollectionEntry<'projects'>[]> {
   const projects = await getCollection('projects')
   return projects.sort((a, b) => {
-    const dateA = a.data.startDate?.getTime() || 0
-    const dateB = b.data.startDate?.getTime() || 0
-    return dateB - dateA
+    // Primary: endDate (new -> old), treat "ongoing" (no endDate) as most recent
+    const endA = a.data.endDate?.getTime()
+    const endB = b.data.endDate?.getTime()
+    const endTimeA = endA ?? Number.POSITIVE_INFINITY
+    const endTimeB = endB ?? Number.POSITIVE_INFINITY
+    const endDiff = endTimeB - endTimeA
+    if (endDiff !== 0) return endDiff
+
+    // Secondary: startDate (new -> old)
+    const startA = a.data.startDate?.getTime() ?? 0
+    const startB = b.data.startDate?.getTime() ?? 0
+    const startDiff = startB - startA
+    if (startDiff !== 0) return startDiff
+
+    // Tertiary: order (low -> high)
+    const orderA = a.data.order ?? Infinity
+    const orderB = b.data.order ?? Infinity
+    const orderDiff = orderA - orderB
+    if (orderDiff !== 0) return orderDiff
+
+    return a.id.localeCompare(b.id)
   })
 }
 
@@ -70,8 +129,19 @@ export async function getProjectById(
   return projects.find((project) => project.id === projectId) || null
 }
 
-export async function getAllExperiences(): Promise<CollectionEntry<'experience'>[]> {
-  return await getCollection('experience')
+export async function getAllExperiences(): Promise<
+  CollectionEntry<'experience'>[]
+> {
+  const experiences = await getCollection('experience')
+  return experiences.sort(compareExperiences)
+}
+
+export async function getRecentExperiences(
+  count: number,
+): Promise<CollectionEntry<'experience'>[]> {
+  const experiences = await getAllExperiences()
+  // `getAllExperiences()` already sorts experiences (ongoing first, then by date new -> old)
+  return experiences.slice(0, count)
 }
 
 export function groupProjectsByYear(

@@ -12,9 +12,10 @@ export const SITE: Site = {
   href: 'https://astro-theme-shyne.vercel.app',
   author: 'FuTseYi',
   locale: 'en-US',
-  featuredPostCount: 2,
+  featuredExperienceCount: 2,
+  featuredPostCount: 3,
   featuredProjectCount: 3,
-  postsPerPage: 3,
+  postsPerPage: 6,
   projectsPerPage: 3,
 }
 

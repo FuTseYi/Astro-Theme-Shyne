@@ -10,14 +10,14 @@ import { buttonVariants } from '@/components/ui/button'
 import { SITE, SOCIAL_LINKS } from '@/config'
 import Layout from '@/layouts/Layout.astro'
 import {
-  getAllExperiences,
+  getRecentExperiences,
   getFeaturedProjects,
   getRecentPosts,
 } from '@/lib/data-utils'
 
 const blog = await getRecentPosts(SITE.featuredPostCount)
 const projects = await getFeaturedProjects(SITE.featuredProjectCount)
-const experiences = await getAllExperiences()
+const experiences = await getRecentExperiences(SITE.featuredExperienceCount)
 ---
 
 <!-- OUTLINE (basically a page for HRs, visitors, and everbody)
@@ -106,10 +106,22 @@ const experiences = await getAllExperiences()
     <p class="text-muted-foreground mb-6 text-2xl">
       Where I've <span
         class="text-foreground decoration-accent font-serif italic underline"
-        >Worked</span
+        >Studied and Worked</span
       > so far.
     </p>
     <ExperienceTimeline experiences={experiences} />
+    <div class="mt-4 flex justify-center">
+      <Link
+        href="/experience"
+        class={buttonVariants({ variant: 'ghost' }) + ' group'}
+      >
+        See all experiences
+        <span
+          class="ml-1.5 transition-transform group-hover:translate-x-1"
+          >&rarr;</span
+        >
+      </Link>
+    </div>
   </section>
 
   <!-- Works Section-->

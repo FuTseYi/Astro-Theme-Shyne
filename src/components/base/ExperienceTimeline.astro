@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 
 // Utils & Types
 import { cn } from '@/lib/utils'
+import { compareExperiences } from '@/lib/data-utils'
 import type { CollectionEntry } from 'astro:content'
 
 interface Props {
@@ -42,19 +43,35 @@ const isCurrentExperience = (exp: CollectionEntry<'experience'>) => {
   return !exp.data.endDate
 }
 
-const sortedExperiences = experiences.sort((a, b) => {
-  if (isCurrentExperience(a) && !isCurrentExperience(b)) return -1
-  if (!isCurrentExperience(a) && isCurrentExperience(b)) return 1
+const getCompanyUrl = (exp: CollectionEntry<'experience'>): string | null => {
+  const url = exp.data.companyUrl
+  if (typeof url !== 'string') return null
+  const trimmed = url.trim()
+  return trimmed.length > 0 ? trimmed : null
+}
 
-  const orderA = a.data.order ?? 0
-  const orderB = b.data.order ?? 0
-  return orderB - orderA
-})
+const getInitials = (company: string | null | undefined): string => {
+  const text = (company ?? '').trim()
+  if (!text) return '?'
+  const parts = text.split(/\s+/).filter(Boolean)
+  const first = parts[0]?.[0] ?? ''
+  const second = parts.length > 1 ? parts[1]?.[0] ?? '' : ''
+  return (first + second).toUpperCase() || '?'
+}
+
+// Keep sorting here for safety (component might be used with unsorted data),
+// but ensure there's exactly one sorting rule by reusing the shared comparator.
+const sortedExperiences = [...experiences].sort(compareExperiences)
 ---
 
 <div class="space-y-8">
   {
     sortedExperiences.map((exp, index) => {
+      const companyUrl = getCompanyUrl(exp)
+      const initials = getInitials(exp.data.company)
+      const dateRange = getDateRange(exp)
+      const location = exp.data.location?.trim()
+
       return (
         <div class="relative">
           {index < sortedExperiences.length - 1 && (
@@ -66,11 +83,35 @@ const sortedExperiences = experiences.sort((a, b) => {
 
           <div class="flex gap-5">
             {/* Company Logo */}
-            <Link
-              href={exp.data.companyUrl!}
-              external
-              class="relative block shrink-0"
-            >
+            {companyUrl ? (
+              <Link href={companyUrl} external class="relative block shrink-0">
+                <div
+                  class={cn(
+                    'border-border z-10 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border',
+                    isCurrentExperience(exp) &&
+                      'shadow-primary/20 shadow-lg dark:shadow-none',
+                  )}
+                >
+                  {exp.data.companyLogo ? (
+                    <Image
+                      src={exp.data.companyLogo}
+                      alt={
+                        exp.data.company
+                          ? `${exp.data.company} logo`
+                          : 'Company logo'
+                      }
+                      width={40}
+                      height={40}
+                      class="bg-background dark:bg-border h-full w-full object-contain p-1.5 transition-opacity hover:opacity-80"
+                    />
+                  ) : (
+                    <span class="text-muted-foreground text-xs font-semibold">
+                      {initials}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ) : (
               <div
                 class={cn(
                   'border-border z-10 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border',
@@ -78,15 +119,23 @@ const sortedExperiences = experiences.sort((a, b) => {
                     'shadow-primary/20 shadow-lg dark:shadow-none',
                 )}
               >
-                <Image
-                  src={exp.data.companyLogo!}
-                  alt={exp.data.company ?? null}
-                  width={40}
-                  height={40}
-                  class="bg-background dark:bg-border h-full w-full object-contain p-1.5 transition-opacity hover:opacity-80"
-                />
+                {exp.data.companyLogo ? (
+                  <Image
+                    src={exp.data.companyLogo}
+                    alt={
+                      exp.data.company ? `${exp.data.company} logo` : 'Company logo'
+                    }
+                    width={40}
+                    height={40}
+                    class="bg-background dark:bg-border h-full w-full object-contain p-1.5"
+                  />
+                ) : (
+                  <span class="text-muted-foreground text-xs font-semibold">
+                    {initials}
+                  </span>
+                )}
               </div>
-            </Link>
+            )}
 
             <div class="min-w-0 flex-1">
               <div class="space-y-1">
@@ -108,9 +157,9 @@ const sortedExperiences = experiences.sort((a, b) => {
 
                 {/* Period and Location */}
                 <p class="text-muted-foreground text-sm">
-                  <span class="font-semibold">{getDateRange(exp)}</span>
-                  <span class="mx-2">·</span>
-                  {exp.data.location}
+                  {dateRange && <span class="font-semibold">{dateRange}</span>}
+                  {dateRange && location && <span class="mx-2">·</span>}
+                  {location}
                 </p>
               </div>
 
