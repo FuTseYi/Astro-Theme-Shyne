@@ -146,6 +146,14 @@
   }
 }
 
+@layer components {
+  /* 让 Markdown 代码块复制提示的背景色跟随主题色 */
+  body .expressive-code {
+    --ec-frm-tooltipSuccessBg: var(--accent);
+    --ec-frm-tooltipSuccessFg: var(--accent-foreground);
+  }
+}
+
 @utility small {
   @apply text-sm leading-6 [&_code]:text-xs [&_img,video,figure,details,blockquote,.katex-display,.expressive-code]:my-4! [&_li,ol]:mt-0 [&_p]:my-2! [&_ul]:my-0;
 }
