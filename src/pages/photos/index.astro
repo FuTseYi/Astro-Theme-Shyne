@@ -1,0 +1,31 @@
+---
+import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
+import Layout from '@/layouts/Layout.astro'
+import { getPhotosTimeline } from '@/lib/photos'
+import PhotoTimeline from '@/components/photos/PhotoTimeline.astro'
+
+const photos = await getPhotosTimeline()
+---
+
+<Layout class="max-w-3xl">
+  <PageHead slot="head" title="Photos" />
+
+  <Breadcrumbs
+    items={[
+      { label: 'Photos', href: '/photos', icon: 'lucide:images' },
+    ]}
+  />
+
+  <section class="mt-8">
+    {
+      photos.length > 0 ? (
+        <PhotoTimeline photoData={photos} />
+      ) : (
+        <div class="text-muted-foreground mb-4">
+          <p class="text-sm">No photos yet, OvO</p>
+        </div>
+      )
+    }
+  </section>
+</Layout>

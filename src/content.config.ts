@@ -52,4 +52,36 @@ const experience = defineCollection({
     }),
 })
 
-export const collections = { blog, projects, experience }
+const photos = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/photos' }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string().nullish(),
+      description: z.string().nullish(),
+      startDate: optionalDate,
+      endDate: optionalDate,
+      iconType: z.enum(['emoji', 'icon', 'color', 'number', 'image']).nullish(),
+      favicon: z.string().nullish().or(z.literal('')),
+      location: z.string().nullish(),
+      /**
+       * 可选：像 blog 一样，把图片放在同一文件夹的 assets 里，
+       * 用 frontmatter 显式声明，支持 Astro 的 image() 管线：
+       *
+       * images:
+       *   - src: ./assets/1.png
+       *     alt: Foo
+       *
+       * 这里的 src 是相对路径字符串，image() 会在构建时解析它。
+       */
+      images: z
+        .array(
+          z.object({
+            src: image(),
+            alt: z.string().optional(),
+          }),
+        )
+        .optional(),
+    }),
+})
+
+export const collections = { blog, projects, experience, photos }

@@ -1,0 +1,96 @@
+---
+import type { PhotoData } from '@/lib/photos'
+import { cn } from '@/lib/utils'
+import PolaroidStack from './PolaroidStack'
+import TimelineIcon from './TimelineIcon.astro'
+
+interface Props {
+  photoData: PhotoData[]
+  class?: string
+}
+
+const { photoData, class: className } = Astro.props
+
+// 格式化日期（含具体天），风格参考 Experience，但增加 day
+const formatDate = (date: string | undefined): string => {
+  if (!date) return ''
+  const parsed = new Date(date)
+  if (Number.isNaN(parsed.getTime())) return ''
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+  }).format(parsed)
+}
+
+const getDateRange = (start?: string, end?: string): string => {
+  const startText = formatDate(start)
+  if (!startText) return ''
+
+  const endText = formatDate(end)
+  if (endText) {
+    return `${startText} - ${endText}`
+  }
+
+  // 没有结束日期就只显示开始日期
+  return startText
+}
+---
+
+<div class={cn(className)}>
+  {
+    photoData.map((timeline, index) => (
+      <div
+        class="timeline-item relative group/item opacity-0 animate-slide-down"
+        style={`animation-delay: ${index * 0.1}s`}
+      >
+        <div class="flex gap-x-3">
+          <div
+            class="relative after:bg-zinc-200/50 dark:after:bg-zinc-700/50 after:absolute after:top-7 after:bottom-0 after:start-3.5 after:w-px after:-translate-x-[0.5px] last:after:hidden"
+          >
+            <div class="relative z-10 flex size-7 items-center justify-center">
+              <TimelineIcon icon={timeline.icon} index={index} />
+            </div>
+          </div>
+          <div class="relative grow pb-8 pt-0.5">
+            {(timeline.date || timeline.endDate) && (
+              <p class="text-muted-foreground mt-1 block text-xs sm:absolute sm:mt-0 sm:top-1.5 right-0">
+                {getDateRange(timeline.date, timeline.endDate)}
+              </p>
+            )}
+            <h2 class="font-sans text-md font-normal mt-0.5 sm:mt-0">
+              <span class="font-semibold">{timeline.title}</span>
+              {timeline.location && (
+                <span class="inline-flex items-center gap-1 text-muted-foreground ml-2 text-xs align-middle">
+                  <svg
+                    class="size-3.5 text-muted-foreground"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fill="currentColor"
+                      d="M12 2.75c-3.04 0-5.5 2.42-5.5 5.4 0 3.77 3.4 7.47 5.03 9.15.26.27.68.27.94 0 1.63-1.68 5.03-5.38 5.03-9.15 0-2.98-2.46-5.4-5.5-5.4Zm0 7.55a2.15 2.15 0 1 1 0-4.3 2.15 2.15 0 0 1 0 4.3Z"
+                    />
+                  </svg>
+                  <span>{timeline.location}</span>
+                </span>
+              )}
+            </h2>
+            <p class="text-muted-foreground mt-0.5 text-sm sm:mt-1">
+              {timeline.description && (
+                <span>
+                  {timeline.description}
+                  <br />
+                </span>
+              )}
+            </p>
+            <div class="mt-4 py-2 sm:py-4">
+              <PolaroidStack photos={timeline.photos} title={timeline.title} description={timeline.description} client:load />
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
+  }
+</div>
+

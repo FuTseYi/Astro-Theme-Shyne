@@ -35,6 +35,10 @@ export const HEADER_LINKS: NavLink[] = [
     href: '/projects',
   },
   {
+    label: 'photos',
+    href: '/photos',
+  },
+  {
     label: '',
     href: '/search',
     icon: 'lucide:search',

@@ -1,0 +1,32 @@
+---
+interface Props {
+  icon: {
+    type: 'emoji' | 'icon' | 'color' | 'number' | 'image'
+    value: string
+    fallback?: string
+  }
+  index: number
+}
+
+const { icon, index } = Astro.props
+---
+
+<div class="relative z-10 size-7 flex items-center justify-center">
+  {icon.type === 'emoji' && <span class="block select-none text-xl leading-none">{icon.value}</span>}
+
+  {icon.type === 'icon' && <i class={`${icon.value} text-primary text-lg`} />}
+
+  {icon.type === 'color' && (
+    <div
+      class="h-3 w-3 rounded-full"
+      style={`background-color: ${icon.value}`}
+    />
+  )}
+
+  {icon.type === 'number' && <span class="text-sm font-bold text-primary">{icon.value || index + 1}</span>}
+
+  {icon.type === 'image' && (
+    <img src={icon.value} class="h-6 w-6 rounded-full border border-gray-200 object-cover" alt="" />
+  )}
+</div>
+
