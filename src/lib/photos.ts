@@ -1,5 +1,4 @@
 import { getCollection } from 'astro:content'
-import { cn } from '@/lib/utils'
 
 export type TimelineIconType = 'emoji' | 'icon' | 'color' | 'number' | 'image'
 
