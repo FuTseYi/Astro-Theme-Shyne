@@ -8,6 +8,12 @@ function ScrollArea({
   children,
   ...props
 }: React.ComponentProps<typeof ScrollAreaPrimitive.Root>) {
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('scroll-area-hydrated'))
+    }
+  }, [])
+
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"

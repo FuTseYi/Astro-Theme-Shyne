@@ -138,6 +138,31 @@ const { headings } = Astro.props
 
   const state = new MobileTOCState()
 
+  const scrollToHashWithOffset = (behavior = 'auto') => {
+    if (!window.location.hash) return
+
+    const targetId = decodeURIComponent(window.location.hash.slice(1))
+    if (!targetId) return
+
+    const target = document.getElementById(targetId)
+    if (!target) return
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+
+    const finalBehavior =
+      prefersReducedMotion || behavior !== 'smooth' ? 'auto' : 'smooth'
+
+    const targetTop =
+      target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
+
+    window.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: finalBehavior,
+    })
+  }
+
   class HeadingRegions {
     static build() {
       state.headings = Array.from(
@@ -288,8 +313,27 @@ const { headings } = Astro.props
       if (!state.listElement) return
 
       state.listElement.querySelectorAll('.mobile-toc-item').forEach((item) => {
-        item.addEventListener('click', () => {
+        const link = item as HTMLAnchorElement
+
+        // 避免在多次 init 时重复绑定事件，导致多次 pushState
+        if (link.dataset.tocMobileBound === 'true') return
+        link.dataset.tocMobileBound = 'true'
+
+        link.addEventListener('click', (event) => {
           if (state.detailsElement) state.detailsElement.open = false
+
+          const href = link.getAttribute('href') || ''
+          if (!href.startsWith('#')) return
+
+          const targetId = decodeURIComponent(href.slice(1))
+          const target = document.getElementById(targetId)
+          if (!target) return
+
+          event.preventDefault()
+
+          window.history.pushState(null, '', `#${targetId}`)
+
+          scrollToHashWithOffset('smooth')
         })
       })
 
@@ -329,6 +373,8 @@ const { headings } = Astro.props
     }
   }
 
+  let isInitialized = false
+
   class MobileTOCController {
     static handleScroll() {
       const newActiveIds = HeadingRegions.getVisibleIds()
@@ -353,11 +399,19 @@ const { headings } = Astro.props
       ProgressCircle.update()
     }
 
+    static handlePopState() {
+      scrollToHashWithOffset('auto')
+    }
+
     static init() {
+      if (isInitialized) return
+
       state.reset()
       HeadingRegions.build()
 
       if (!state.currentSectionText) return
+
+      isInitialized = true
 
       if (state.headings.length === 0) {
         state.currentSectionText.textContent = INITIAL_OVERVIEW_TEXT
@@ -375,23 +429,30 @@ const { headings } = Astro.props
       MobileTOCLinks.setupInteraction()
       window.addEventListener('scroll', this.handleScroll, { passive: true })
       window.addEventListener('resize', this.handleResize, { passive: true })
+      window.addEventListener('popstate', this.handlePopState)
     }
 
     static cleanup() {
+      if (!isInitialized) return
+
       window.removeEventListener('scroll', this.handleScroll)
       window.removeEventListener('scroll', ProgressCircle.update)
       window.removeEventListener('resize', this.handleResize)
+      window.removeEventListener('popstate', this.handlePopState)
+
+      isInitialized = false
       state.activeIds = []
       state.headings = []
       state.regions = []
     }
   }
 
-  document.addEventListener('astro:page-load', () => MobileTOCController.init())
-  document.addEventListener('astro:after-swap', () => {
-    MobileTOCController.cleanup()
+  const handleScrollAreaHydrated = () => {
     MobileTOCController.init()
-  })
+  }
+
+  window.addEventListener('scroll-area-hydrated', handleScrollAreaHydrated)
+
   document.addEventListener('astro:before-swap', () =>
     MobileTOCController.cleanup()
   )

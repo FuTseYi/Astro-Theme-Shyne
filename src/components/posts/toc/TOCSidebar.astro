@@ -172,6 +172,31 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
 
   const state = new TOCState()
 
+  const scrollToHashWithOffset = (behavior = 'auto') => {
+    if (!window.location.hash) return
+
+    const targetId = decodeURIComponent(window.location.hash.slice(1))
+    if (!targetId) return
+
+    const target = document.getElementById(targetId)
+    if (!target) return
+
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches
+
+    const finalBehavior =
+      prefersReducedMotion || behavior !== 'smooth' ? 'auto' : 'smooth'
+
+    const targetTop =
+      target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
+
+    window.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: finalBehavior,
+    })
+  }
+
   class HeadingRegions {
     static build() {
       state.headings = Array.from(
@@ -295,6 +320,32 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
     }
   }
 
+  const setupSmoothScrollForSamePageLinks = () => {
+    state.links.forEach((linkEl) => {
+      const link = linkEl as HTMLAnchorElement
+
+      // 避免在多次 init 时重复绑定事件，导致多次 pushState
+      if (link.dataset.tocBound === 'true') return
+      link.dataset.tocBound = 'true'
+
+      link.addEventListener('click', (event) => {
+        const url = new URL(link.href, window.location.href)
+
+        if (url.pathname !== window.location.pathname || !url.hash) return
+
+        const targetId = decodeURIComponent(url.hash.slice(1))
+        const target = document.getElementById(targetId)
+        if (!target) return
+
+        event.preventDefault()
+
+        window.history.pushState(null, '', url.hash)
+
+        scrollToHashWithOffset('smooth')
+      })
+    })
+  }
+
   class TOCController {
     static handleScroll() {
       const newActiveIds = HeadingRegions.getVisibleIds()
@@ -319,6 +370,10 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
       TOCScrollMask.update()
     }
 
+    static handlePopState() {
+      scrollToHashWithOffset('auto')
+    }
+
     static init() {
       state.reset()
       HeadingRegions.build()
@@ -330,10 +385,13 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
 
       this.handleScroll()
       setTimeout(TOCScrollMask.update, 100)
+      setupSmoothScrollForSamePageLinks()
+      scrollToHashWithOffset('auto')
 
       const options = { passive: true }
       window.addEventListener('scroll', this.handleScroll, options)
       window.addEventListener('resize', this.handleResize, options)
+      window.addEventListener('popstate', this.handlePopState)
       state.scrollArea?.addEventListener(
         'scroll',
         this.handleTOCScroll,
@@ -344,6 +402,7 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
     static cleanup() {
       window.removeEventListener('scroll', this.handleScroll)
       window.removeEventListener('resize', this.handleResize)
+      window.removeEventListener('popstate', this.handlePopState)
       state.scrollArea?.removeEventListener('scroll', this.handleTOCScroll)
 
       Object.assign(state, {
