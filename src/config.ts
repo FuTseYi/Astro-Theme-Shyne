@@ -11,6 +11,14 @@ export const SITE: Site = {
     'astro-theme-Shyne is a opinionated, unstyled blogging template—built with Astro, Tailwind, and shadcn/ui.',
   href: 'https://astro-theme-shyne.vercel.app',
   author: 'FuTseYi',
+  footer: {
+    items: [
+      { type: 'text', value: 'Crafted with ' },
+      { type: 'link', label: 'Shyne', href: '/about' },
+      { type: 'text', value: ' & ' },
+      { type: 'link', label: 'Astro-Theme-Shyne', href: 'https://github.com/FuTseYi/Astro-Theme-Shyne' },
+    ],
+  },
   locale: 'en-US',
   featuredExperienceCount: 2,
   featuredPostCount: 3,
@@ -50,6 +58,11 @@ export const FOOTER_LINKS: NavLink[] = [
     label: 'About',
     href: '/about',
     icon: 'lucide:user-star',
+  },
+  {
+    label: 'Experience',
+    href: '/experience',
+    icon: 'lucide:briefcase-business',
   },
   {
     label: 'Tags',

@@ -1,7 +1,7 @@
 ---
 import Link from '@/components/base/Link.astro'
 import SocialIcons from '@/components/base/SocialIcons.astro'
-import { FOOTER_LINKS, SOCIAL_LINKS } from '@/config'
+import { FOOTER_LINKS, SOCIAL_LINKS, SITE } from '@/config'
 import { Icon } from 'astro-icon/components'
 ---
 
@@ -29,10 +29,22 @@ import { Icon } from 'astro-icon/components'
     </div>
 
     <p class="text-muted-foreground mt-2">
-      &copy; {new Date().getFullYear()} ・ Crafted with by
-      <Link href="/about" class="text-accent transition-colors" underline
-        >Shyne</Link
-      >
+      &copy; {new Date().getFullYear()} ・
+      {
+        SITE.footer.items.map((item) =>
+          item.type === 'text' ? (
+            <span>{item.value}</span>
+          ) : (
+            <Link
+              href={item.href}
+              class="text-accent transition-colors"
+              underline
+            >
+              {item.label}
+            </Link>
+          ),
+        )
+      }
     </p>
   </div>
 

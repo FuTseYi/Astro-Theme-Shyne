@@ -3,6 +3,19 @@ export type Site = {
   description: string
   href: string
   author: string
+  footer: {
+    items: (
+      | {
+          type: 'text'
+          value: string
+        }
+      | {
+          type: 'link'
+          label: string
+          href: string
+        }
+    )[]
+  }
   locale: string
   featuredPostCount: number
   featuredProjectCount: number
