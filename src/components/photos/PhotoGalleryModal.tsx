@@ -684,7 +684,6 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-foreground text-lg font-semibold">{title}</h3>
-                  {description && <p className="text-muted-foreground mt-1 text-sm">{description}</p>}
                 </div>
                 <button
                   type="button"
