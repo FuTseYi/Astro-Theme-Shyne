@@ -40,30 +40,25 @@ const getDateRange = (start?: string, end?: string): string => {
 <div class={cn(className)}>
   {
     photoData.map((timeline, index) => (
-      <div
-        class="timeline-item relative group/item opacity-0 animate-slide-down"
-        style={`animation-delay: ${index * 0.1}s`}
-      >
+      <div class="timeline-item group/item relative">
         <div class="flex gap-x-3">
-          <div
-            class="relative after:bg-zinc-200/50 dark:after:bg-zinc-700/50 after:absolute after:top-7 after:bottom-0 after:start-3.5 after:w-px after:-translate-x-[0.5px] last:after:hidden"
-          >
+          <div class="relative after:absolute after:start-3.5 after:top-7 after:bottom-0 after:w-px after:-translate-x-[0.5px] after:bg-zinc-200/50 last:after:hidden dark:after:bg-zinc-700/50">
             <div class="relative z-10 flex size-7 items-center justify-center">
               <TimelineIcon icon={timeline.icon} index={index} />
             </div>
           </div>
-          <div class="relative grow pb-8 pt-0.5">
+          <div class="relative grow pt-0.5 pb-8">
             {(timeline.date || timeline.endDate) && (
-              <p class="text-muted-foreground mt-1 block text-xs sm:absolute sm:mt-0 sm:top-1.5 right-0">
+              <p class="text-muted-foreground right-0 mt-1 block text-xs sm:absolute sm:top-1.5 sm:mt-0">
                 {getDateRange(timeline.date, timeline.endDate)}
               </p>
             )}
-            <h2 class="font-sans text-md font-normal mt-0.5 sm:mt-0">
+            <h2 class="text-md mt-0.5 font-sans font-normal sm:mt-0">
               <span class="font-semibold">{timeline.title}</span>
               {timeline.location && (
-                <span class="inline-flex items-center gap-1 text-muted-foreground ml-2 text-xs align-middle">
+                <span class="text-muted-foreground ml-2 inline-flex items-center gap-1 align-middle text-xs">
                   <svg
-                    class="size-3.5 text-muted-foreground"
+                    class="text-muted-foreground size-3.5"
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                   >
@@ -85,7 +80,12 @@ const getDateRange = (start?: string, end?: string): string => {
               )}
             </p>
             <div class="mt-4 py-2 sm:py-4">
-              <PolaroidStack photos={timeline.photos} title={timeline.title} description={timeline.description} client:load />
+              <PolaroidStack
+                photos={timeline.photos}
+                title={timeline.title}
+                description={timeline.description}
+                client:load
+              />
             </div>
           </div>
         </div>
@@ -93,4 +93,3 @@ const getDateRange = (start?: string, end?: string): string => {
     ))
   }
 </div>
-

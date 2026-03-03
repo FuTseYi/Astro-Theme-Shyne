@@ -51,12 +51,13 @@ const PolaroidCard: React.FC<Props> = ({
       )}
       style={{
         zIndex: isClicked ? -1 : baseZIndex,
-        willChange: 'transform,opacity',
+        willChange: 'transform',
+        contain: 'layout',
       }}
       initial="hidden"
       animate={isClicked ? 'clicked' : isVisible ? 'show' : 'hidden'}
       variants={{
-        hidden: { scale: 0, rotate: 0, x: -60, zIndex: totalPhotos - index },
+        hidden: { scale: 0.85, rotate: 0, x: -30, zIndex: totalPhotos - index },
         show: { scale: 1, rotate: rotation, x: 0 },
         clicked: {
           scale: 1,
@@ -68,10 +69,10 @@ const PolaroidCard: React.FC<Props> = ({
       viewport={{ once: true }}
       transition={{
         type: 'spring',
-        stiffness: 360,
-        damping: 20,
-        delay: index * 0.05,
-        duration: 0.8,
+        stiffness: 400,
+        damping: 25,
+        delay: index * 0.03,
+        duration: 0.5,
       }}
       whileHover={
         isClicked

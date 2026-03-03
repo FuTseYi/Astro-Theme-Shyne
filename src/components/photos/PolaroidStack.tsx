@@ -43,7 +43,8 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
     <>
       <motion.div
         ref={ref}
-        className={cn('perspective-1000 flex flex-wrap items-end', className)}
+        className={cn('perspective-1000 flex flex-wrap items-end min-h-[6rem]', className)}
+        style={{ contain: 'layout' }}
       >
         {photos.map((photo, index) => (
           <div key={`${photo.src}-${index}`} onClick={() => handlePhotoClick(index)}>
