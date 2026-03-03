@@ -1,7 +1,7 @@
 ---
 import Link from '@/components/base/Link.astro'
 import SocialIcons from '@/components/base/SocialIcons.astro'
-import { FOOTER_LINKS, SOCIAL_LINKS, SITE } from '@/config'
+import { FOOTER_LINKS, SITE, SOCIAL_LINKS } from '@/config'
 import { Icon } from 'astro-icon/components'
 ---
 
@@ -48,10 +48,13 @@ import { Icon } from 'astro-icon/components'
     </p>
   </div>
 
-  <div class="m-0 mt-12 flex w-full justify-center p-0">
+  <div
+    class="m-0 flex w-full justify-center p-0"
+    style="margin-top: clamp(4rem, 8vw, 8rem);"
+  >
     <!-- footer Astro-Theme-Shyne typography -->
     <div
-      class="text-accent pointer-events-none m-0 p-0 text-center leading-none font-bold whitespace-nowrap select-none font-bon-vivant"
+      class="text-accent font-bon-vivant pointer-events-none m-0 p-0 text-center leading-none font-bold whitespace-nowrap select-none"
       style="font-size: clamp(2.5rem, 10vw, 12.4rem);"
     >
       Astro-Theme-Shyne
