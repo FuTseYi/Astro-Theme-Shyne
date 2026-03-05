@@ -28,7 +28,7 @@ const CONSTANTS = {
   WHEEL_ZOOM_FACTOR: 0.0015,
   DRAG_THRESHOLD_RATIO: 0.07,
   OFFSET_MARGIN: 40, // px
-  IMAGE_MAX_HEIGHT_RATIO: 0.7,
+  IMAGE_MAX_HEIGHT_RATIO: 0.8,
   MODAL_SAFE_MARGIN: 48, // px
   MODAL_MIN_HEIGHT: 200, // px
   CLICK_DEBOUNCE: 200, // ms
@@ -800,7 +800,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
           >
             <motion.div
               key="modal-content"
-              className="bg-background relative mx-4 w-full max-w-lg p-6 shadow-2xl pointer-events-auto"
+              className="bg-background relative mx-4 w-full max-w-lg p-4 shadow-2xl pointer-events-auto"
               onClick={(e) => e.stopPropagation()}
               ref={modalRef}
               initial={{ opacity: 0, y: 60, scale: 0.9 }}
@@ -808,7 +808,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
               exit={{ opacity: 0, y: -60, scale: 0.9 }}
               transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-            <div className="border-gray-100 mb-6">
+            <div className="border-gray-100 mb-4">
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="text-foreground text-lg font-semibold">{title}</h3>
@@ -887,7 +887,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
                             draggable={false}
                             src={imgSrc}
                             alt={photo.alt}
-                            className="block max-h-[70vh] max-w-full select-none object-contain"
+                            className="block max-h-[80vh] max-w-full select-none object-contain"
                             style={{
                               transform:
                                 isActive && zoom > CONSTANTS.MIN_ZOOM
@@ -940,7 +940,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
               )}
             </div>
 
-            <div className="text-muted-foreground mt-4 text-center text-sm font-medium">
+            <div className="text-muted-foreground mt-3 text-center text-sm font-medium">
               {currentIndex + 1} / {photos.length}
             </div>
           </motion.div>
