@@ -26,7 +26,7 @@ const CONSTANTS = {
   WHEEL_THROTTLE: 16, // ms
   WHEEL_MIN_DELTA: 5,
   WHEEL_ZOOM_FACTOR: 0.0015,
-  DRAG_THRESHOLD_RATIO: 0.25,
+  DRAG_THRESHOLD_RATIO: 0.07,
   OFFSET_MARGIN: 40, // px
   IMAGE_MAX_HEIGHT_RATIO: 0.7,
   MODAL_SAFE_MARGIN: 48, // px
@@ -344,12 +344,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
         newIdx = currentIndex + 1
       }
       setCurrentIndex(newIdx)
-      animate(x, -newIdx * (containerWidth + CONSTANTS.GAP), { 
-        type: 'spring', 
-        stiffness: 300, 
-        damping: 30,
-        mass: 0.8
-      })
+      animate(x, -newIdx * (containerWidth + CONSTANTS.GAP), { type: 'tween', duration: 0.5, ease: 'easeOut' })
     },
     [containerWidth, photos.length, x, currentIndex, zoom],
   )
@@ -715,9 +710,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
                   style={{ x, width: photos.length * (containerWidth + CONSTANTS.GAP) - CONSTANTS.GAP }}
                   drag={zoom === CONSTANTS.MIN_ZOOM ? 'x' : false}
                   dragConstraints={{ left: -(photos.length - 1) * (containerWidth + CONSTANTS.GAP), right: 0 }}
-                  dragElastic={0.05}
-                  dragMomentum={true}
-                  dragTransition={{ bounceStiffness: 300, bounceDamping: 30 }}
+                  dragElastic={0.1}
                   onDragStart={() => {
                     isPointerDraggingRef.current = true
                   }}
@@ -727,7 +720,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
                     isPointerDraggingRef.current = false
                     lastPointerReleaseRef.current = Date.now()
                   }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 0.8 }}
+                  transition={{ type: 'tween', duration: 0.5, ease: 'easeOut' }}
                 >
                   {photos.map((photo, index) => {
                     const imgSrc = photo.src
