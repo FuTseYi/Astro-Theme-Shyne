@@ -56,12 +56,14 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
   const prevBodyPaddingRightRef = useRef<string>('')
   const x = useMotionValue(0)
   const [canAnimate, setCanAnimate] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false) // 追踪切换动画状态
   const lastWheelTimeRef = useRef<number>(0)
   // 触摸相关状态
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
   const lastTapTimeRef = useRef<number>(0)
   const isTouchPanningRef = useRef(false)
   const touchCleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // 计算偏移边界限制
   const getOffsetBounds = useCallback(
@@ -141,9 +143,20 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
     if (!isOpen) return
     const targetX = -currentIndex * (containerWidth + CONSTANTS.GAP)
     if (canAnimate) {
+      setIsAnimating(true)
+      // 清除之前的动画定时器
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
       animate(x, targetX, { type: 'tween', duration: 0.5, ease: 'easeOut' })
+      // 动画完成后标记为非动画状态
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+        animationTimeoutRef.current = null
+      }, 500) // 与动画时长保持一致
     } else {
       x.set(targetX)
+      setIsAnimating(false)
     }
   }, [currentIndex, containerWidth, x, isOpen, canAnimate])
 
@@ -153,7 +166,15 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
       setCurrentIndex(initialIndex)
       resetZoom()
       setCanAnimate(false)
+      setIsAnimating(false)
       setTimeout(() => setCanAnimate(true), CONSTANTS.ANIMATION_DELAY)
+    } else {
+      // 关闭时重置动画状态
+      setIsAnimating(false)
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+        animationTimeoutRef.current = null
+      }
     }
   }, [isOpen, initialIndex, resetZoom])
 
@@ -261,6 +282,10 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
         clearTimeout(touchCleanupTimeoutRef.current)
         touchCleanupTimeoutRef.current = null
       }
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+        animationTimeoutRef.current = null
+      }
     }
   }, [])
 
@@ -343,28 +368,68 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
       } else if (dragOffset < -threshold && currentIndex < photos.length - 1) {
         newIdx = currentIndex + 1
       }
-      setCurrentIndex(newIdx)
-      animate(x, -newIdx * (containerWidth + CONSTANTS.GAP), { type: 'tween', duration: 0.5, ease: 'easeOut' })
+      
+      // 如果索引变化，标记动画开始
+      if (newIdx !== currentIndex) {
+        setIsAnimating(true)
+        // 清除之前的动画定时器
+        if (animationTimeoutRef.current) {
+          clearTimeout(animationTimeoutRef.current)
+        }
+        setCurrentIndex(newIdx)
+        animate(x, -newIdx * (containerWidth + CONSTANTS.GAP), { type: 'tween', duration: 0.5, ease: 'easeOut' })
+        // 动画完成后标记为非动画状态
+        animationTimeoutRef.current = setTimeout(() => {
+          setIsAnimating(false)
+          animationTimeoutRef.current = null
+        }, 500)
+      } else {
+        // 如果没有切换，立即回弹到当前位置
+        animate(x, -currentIndex * (containerWidth + CONSTANTS.GAP), { type: 'tween', duration: 0.3, ease: 'easeOut' })
+      }
     },
     [containerWidth, photos.length, x, currentIndex, zoom],
   )
 
   const goPrev = useCallback(() => {
-    if (currentIndex > 0) {
+    if (currentIndex > 0 && !isAnimating) {
+      setIsAnimating(true)
       setCurrentIndex((i) => i - 1)
       resetZoom()
+      // 清除之前的动画定时器
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
+      // 动画完成后标记为非动画状态
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+        animationTimeoutRef.current = null
+      }, 500)
     }
-  }, [currentIndex, resetZoom])
+  }, [currentIndex, resetZoom, isAnimating])
 
   const goNext = useCallback(() => {
-    if (currentIndex < photos.length - 1) {
+    if (currentIndex < photos.length - 1 && !isAnimating) {
+      setIsAnimating(true)
       setCurrentIndex((i) => i + 1)
       resetZoom()
+      // 清除之前的动画定时器
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current)
+      }
+      // 动画完成后标记为非动画状态
+      animationTimeoutRef.current = setTimeout(() => {
+        setIsAnimating(false)
+        animationTimeoutRef.current = null
+      }, 500)
     }
-  }, [currentIndex, photos.length, resetZoom])
+  }, [currentIndex, photos.length, resetZoom, isAnimating])
 
   // 滚轮事件处理 - 使用原生事件以支持 preventDefault
   const handleWheel = useCallback((e: WheelEvent) => {
+    // 在动画进行时，禁用滚轮缩放以防止冲突
+    if (isAnimating) return
+
     // 在图片区域内使用滚轮进行缩放，而不是切换图片
     e.preventDefault()
     e.stopPropagation()
@@ -391,11 +456,13 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
 
       return next
     })
-  }, [])
+  }, [isAnimating])
 
   const handleImageDoubleClick = useCallback(() => {
+    // 在动画进行时，禁用双击缩放以防止冲突
+    if (isAnimating) return
     toggleZoom()
-  }, [toggleZoom])
+  }, [toggleZoom, isAnimating])
 
   const handleImageMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
@@ -456,6 +523,11 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
   // 触摸事件处理 - 双击放大（使用原生 TouchEvent）
   const handleImageTouchStart = useCallback(
     (e: TouchEvent) => {
+      // 在动画进行时，禁用所有交互以防止冲突
+      if (isAnimating) {
+        return
+      }
+
       const index = getImageIndexFromEvent(e)
       // 只处理当前激活的图片
       if (index === null || index !== currentIndex) return
@@ -505,12 +577,17 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
       }
       // 未放大时，不阻止默认行为，让浏览器进行优化的触摸处理
     },
-    [currentIndex, zoom, toggleZoom, getImageIndexFromEvent],
+    [currentIndex, zoom, toggleZoom, getImageIndexFromEvent, isAnimating],
   )
 
   // 触摸移动 - 拖拽查看（使用原生 TouchEvent）
   const handleImageTouchMove = useCallback(
     (e: TouchEvent) => {
+      // 在动画进行时，禁用触摸移动交互
+      if (isAnimating) {
+        return
+      }
+
       const index = getImageIndexFromEvent(e)
       // 只处理当前激活的图片
       if (index === null || index !== currentIndex) return
@@ -545,7 +622,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
       }
       // 未放大时，让 Framer Motion 处理拖拽，不干预
     },
-    [currentIndex, zoom, isPanning, getOffsetBounds, getImageIndexFromEvent],
+    [currentIndex, zoom, isPanning, getOffsetBounds, getImageIndexFromEvent, isAnimating],
   )
 
   // 触摸结束（使用原生 TouchEvent）
@@ -715,10 +792,12 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
                 <motion.div
                   className="flex items-start gap-4"
                   style={{ x, width: photos.length * (containerWidth + CONSTANTS.GAP) - CONSTANTS.GAP }}
-                  drag={zoom === CONSTANTS.MIN_ZOOM ? 'x' : false}
+                  drag={zoom === CONSTANTS.MIN_ZOOM && !isAnimating ? 'x' : false}
                   dragConstraints={{ left: -(photos.length - 1) * (containerWidth + CONSTANTS.GAP), right: 0 }}
                   dragElastic={0.1}
                   onDragStart={() => {
+                    // 在动画期间不允许开始拖拽
+                    if (isAnimating) return
                     isPointerDraggingRef.current = true
                   }}
                   onDragEnd={(event, info) => {
