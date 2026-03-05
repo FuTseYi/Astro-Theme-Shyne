@@ -57,6 +57,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
   const x = useMotionValue(0)
   const [canAnimate, setCanAnimate] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false) // 追踪切换动画状态
+  const [isExiting, setIsExiting] = useState(false) // 追踪退出动画状态
   const lastWheelTimeRef = useRef<number>(0)
   // 触摸相关状态
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null)
@@ -64,6 +65,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
   const isTouchPanningRef = useRef(false)
   const touchCleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const exitTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // 计算偏移边界限制
   const getOffsetBounds = useCallback(
@@ -286,65 +288,88 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
         clearTimeout(animationTimeoutRef.current)
         animationTimeoutRef.current = null
       }
+      if (exitTimeoutRef.current) {
+        clearTimeout(exitTimeoutRef.current)
+        exitTimeoutRef.current = null
+      }
+      // 组件卸载时确保恢复 body 样式
+      if (prevBodyOverflowRef.current !== undefined) {
+        document.body.style.overflow = prevBodyOverflowRef.current || ''
+        document.body.style.paddingRight = prevBodyPaddingRightRef.current || ''
+      }
     }
   }, [])
 
-  // 锁定 / 还原页面滚动，兼容弹窗关闭和组件卸载两种情况
+  // 安全网：如果 isExiting 状态持续太久，强制清理
+  useEffect(() => {
+    if (isExiting) {
+      const safetyTimeout = setTimeout(() => {
+        console.warn('Modal exit animation timeout - forcing cleanup')
+        setIsExiting(false)
+        // 确保 body 样式已恢复
+        const savedOverflow = prevBodyOverflowRef.current || ''
+        const savedPaddingRight = prevBodyPaddingRightRef.current || ''
+        document.body.style.overflow = savedOverflow
+        document.body.style.paddingRight = savedPaddingRight
+        if (!savedOverflow) {
+          document.body.style.removeProperty('overflow')
+        }
+        if (!savedPaddingRight) {
+          document.body.style.removeProperty('padding-right')
+        }
+      }, 500) // 如果 500ms 后还没有清理，强制清理
+
+      return () => clearTimeout(safetyTimeout)
+    }
+  }, [isExiting])
+
+  // 锁定 / 还原页面滚动 - 优化版
   useEffect(() => {
     if (!isOpen) {
-      // 当弹窗关闭时，立即恢复 body 样式和重置所有状态
-      // 这确保即使退出动画还在进行，页面也能正常交互
+      // 弹窗关闭时，标记退出状态并延迟恢复 body 样式
+      setIsExiting(true)
       
-      // 立即重置所有拖拽和缩放相关状态，防止残留状态影响页面交互
+      // 立即重置所有交互状态
       resetZoom()
       setIsPanning(false)
       panStartRef.current = null
       isPointerDraggingRef.current = false
       lastPointerReleaseRef.current = 0
       
-      const savedOverflow = prevBodyOverflowRef.current || ''
-      const savedPaddingRight = prevBodyPaddingRightRef.current || ''
-      const savedScrollTop = scrollTopRef.current
-      
-      // 立即恢复样式，这是最关键的步骤
-      // 使用同步方式立即恢复，不等待任何异步操作
-      document.body.style.overflow = savedOverflow
-      document.body.style.paddingRight = savedPaddingRight
-      
-      // 强制移除可能残留的样式
-      if (!savedOverflow) {
-        document.body.style.removeProperty('overflow')
-      }
-      if (!savedPaddingRight) {
-        document.body.style.removeProperty('padding-right')
+      // 清除之前的退出定时器
+      if (exitTimeoutRef.current) {
+        clearTimeout(exitTimeoutRef.current)
       }
       
-      // 等待样式应用后再恢复滚动位置
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          // 再次确认样式已恢复（防止被其他代码修改）
-          if (document.body.style.overflow === 'hidden') {
-            document.body.style.overflow = savedOverflow || ''
-            document.body.style.paddingRight = savedPaddingRight || ''
-          }
-          
-          // 恢复滚动位置
-          try {
-            window.scrollTo(0, savedScrollTop)
-            // 备用方案：直接设置 scrollTop（某些情况下更可靠）
-            document.documentElement.scrollTop = savedScrollTop
-            document.body.scrollTop = savedScrollTop
-          } catch (e) {
-            // 忽略滚动错误，不影响页面功能
-            console.warn('Failed to restore scroll position:', e)
-          }
-        })
-      })
+      // 等待退出动画完成后再恢复 body 样式（动画时长 200ms，加 50ms 缓冲）
+      exitTimeoutRef.current = setTimeout(() => {
+        const savedOverflow = prevBodyOverflowRef.current || ''
+        const savedPaddingRight = prevBodyPaddingRightRef.current || ''
+        const savedScrollTop = scrollTopRef.current
+        
+        // 恢复 body 样式
+        document.body.style.overflow = savedOverflow
+        document.body.style.paddingRight = savedPaddingRight
+        
+        // 清理样式属性
+        if (!savedOverflow) {
+          document.body.style.removeProperty('overflow')
+        }
+        if (!savedPaddingRight) {
+          document.body.style.removeProperty('padding-right')
+        }
+        
+        // 恢复滚动位置
+        window.scrollTo(0, savedScrollTop)
+        
+        setIsExiting(false)
+        exitTimeoutRef.current = null
+      }, 250) // 200ms 动画 + 50ms 缓冲
       
       return
     }
 
-    // 记录当前滚动位置与原有样式（只在打开时记录一次）
+    // 弹窗打开时，锁定页面滚动
     scrollTopRef.current = window.scrollY || window.pageYOffset || 0
     prevBodyOverflowRef.current = document.body.style.overflow || ''
     prevBodyPaddingRightRef.current = document.body.style.paddingRight || ''
@@ -354,6 +379,8 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
     if (scrollbarWidth > 0) {
       document.body.style.paddingRight = `${scrollbarWidth}px`
     }
+    
+    setIsExiting(false)
   }, [isOpen, resetZoom])
 
   const handleDragEnd = useCallback(
@@ -726,44 +753,61 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
 
   if (photos.length === 0) return null
 
+  // 退出动画完成回调
+  const handleExitComplete = useCallback(() => {
+    // 重置高度状态
+    setCurrentHeight(100)
+    // 确保所有状态都已清理
+    setIsExiting(false)
+    // 清理退出定时器
+    if (exitTimeoutRef.current) {
+      clearTimeout(exitTimeoutRef.current)
+      exitTimeoutRef.current = null
+    }
+  }, [])
+
   const modalContent = (
-    <AnimatePresence onExitComplete={() => setCurrentHeight(100)}>
+    <AnimatePresence mode="wait" onExitComplete={handleExitComplete}>
       {isOpen && (
-        <motion.div
-          key="modal-backdrop"
-          className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
-          onClick={(e) => {
-            // 如果刚刚发生过拖拽（包括放大拖动或未放大时的滑动切换），则忽略本次点击，防止误关闭
-            const now = Date.now()
-            if (isPointerDraggingRef.current || now - lastPointerReleaseRef.current < CONSTANTS.CLICK_DEBOUNCE) {
-              e.stopPropagation()
-              return
-            }
-            onClose()
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, pointerEvents: 'auto' }}
-          exit={{ opacity: 0, pointerEvents: 'none' }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-        >
+        <>
+          {/* 背景遮罩层 - 独立的顶层元素 */}
           <motion.div
-            className="h-[100dvh] absolute inset-0 bg-black/50"
+            key="modal-backdrop-overlay"
+            className="fixed inset-0 z-[99999] bg-black/50"
+            onClick={(e) => {
+              // 如果刚刚发生过拖拽，则忽略本次点击，防止误关闭
+              const now = Date.now()
+              if (isPointerDraggingRef.current || now - lastPointerReleaseRef.current < CONSTANTS.CLICK_DEBOUNCE) {
+                e.stopPropagation()
+                return
+              }
+              onClose()
+            }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1, pointerEvents: 'auto' }}
-            exit={{ opacity: 0, pointerEvents: 'none' }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
           />
 
+          {/* Modal 容器层 - 居中布局 */}
           <motion.div
-            key="modal-content"
-            className="bg-background relative mx-4 w-full max-w-lg p-6 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-            ref={modalRef}
-            initial={{ opacity: 0, y: 60, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: modalScale }}
-            exit={{ opacity: 0, y: -60, scale: 0.9 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94], opacity: { duration: 0.25 } }}
+            key="modal-container"
+            className="fixed inset-0 z-[100000] flex items-center justify-center p-4 pointer-events-none"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
+            <motion.div
+              key="modal-content"
+              className="bg-background relative mx-4 w-full max-w-lg p-6 shadow-2xl pointer-events-auto"
+              onClick={(e) => e.stopPropagation()}
+              ref={modalRef}
+              initial={{ opacity: 0, y: 60, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: modalScale }}
+              exit={{ opacity: 0, y: -60, scale: 0.9 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
             <div className="border-gray-100 mb-6">
               <div className="flex items-start justify-between">
                 <div>
@@ -901,11 +945,13 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
             </div>
           </motion.div>
         </motion.div>
+        </>
       )}
     </AnimatePresence>
   )
 
-  return typeof document !== 'undefined' ? createPortal(modalContent, document.body) : null
+  // 只在客户端且弹窗打开或正在退出动画时才渲染 Portal
+  return typeof document !== 'undefined' && (isOpen || isExiting) ? createPortal(modalContent, document.body) : null
 }
 
 export default PhotoGalleryModal
