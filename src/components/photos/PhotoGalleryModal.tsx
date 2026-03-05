@@ -474,6 +474,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
 
         // 如果两次点击位置相近，视为双击
         if (distance < CONSTANTS.DOUBLE_TAP_DISTANCE) {
+          // 只在需要时才阻止默认行为
           e.preventDefault()
           e.stopPropagation()
 
@@ -495,13 +496,14 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
       isTouchPanningRef.current = false
       isPointerDraggingRef.current = true
 
-      // 如果已放大，准备拖拽
+      // 如果已放大，准备拖拽 - 只在这种情况下阻止默认行为
       if (zoom > CONSTANTS.MIN_ZOOM) {
         e.preventDefault()
         e.stopPropagation()
         setIsPanning(true)
         panStartRef.current = { x: touch.clientX, y: touch.clientY }
       }
+      // 未放大时，不阻止默认行为，让浏览器进行优化的触摸处理
     },
     [currentIndex, zoom, toggleZoom, getImageIndexFromEvent],
   )
@@ -525,7 +527,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
         isTouchPanningRef.current = true
       }
 
-      // 如果已放大，进行拖拽
+      // 只在已放大且正在拖拽时才阻止默认行为
       if (zoom > CONSTANTS.MIN_ZOOM && isPanning && panStartRef.current) {
         e.preventDefault()
         e.stopPropagation()
@@ -541,6 +543,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
           return { x: nextX, y: nextY }
         })
       }
+      // 未放大时，让 Framer Motion 处理拖拽，不干预
     },
     [currentIndex, zoom, isPanning, getOffsetBounds, getImageIndexFromEvent],
   )
@@ -621,24 +624,28 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
   }, [isOpen, handleWheel])
 
   // 使用原生事件监听器处理触摸事件，支持 preventDefault
-  // 限制在 modal 容器内，避免影响页面其他元素
+  // 只在图片容器上监听，不影响其他区域
   useEffect(() => {
     if (!isOpen) return
 
-    const modalElement = modalRef.current
-    if (!modalElement) return
+    const wheelElement = wheelContainerRef.current
+    if (!wheelElement) return
 
-    // 使用 { passive: false } 以允许 preventDefault
-    modalElement.addEventListener('touchstart', handleImageTouchStart, { passive: false })
-    modalElement.addEventListener('touchmove', handleImageTouchMove, { passive: false })
-    modalElement.addEventListener('touchend', handleImageTouchEnd, { passive: false })
+    // touchstart 需要支持双击检测（可能调用 preventDefault），所以使用 passive: false
+    // touchmove 在放大时需要 preventDefault，未放大时让 Framer Motion 处理
+    // touchend 不需要 preventDefault，使用 passive: true 优化性能
+    const touchMovePassive = zoom === CONSTANTS.MIN_ZOOM ? { passive: true } : { passive: false }
+
+    wheelElement.addEventListener('touchstart', handleImageTouchStart, { passive: false })
+    wheelElement.addEventListener('touchmove', handleImageTouchMove, touchMovePassive)
+    wheelElement.addEventListener('touchend', handleImageTouchEnd, { passive: true })
 
     return () => {
-      modalElement.removeEventListener('touchstart', handleImageTouchStart)
-      modalElement.removeEventListener('touchmove', handleImageTouchMove)
-      modalElement.removeEventListener('touchend', handleImageTouchEnd)
+      wheelElement.removeEventListener('touchstart', handleImageTouchStart)
+      wheelElement.removeEventListener('touchmove', handleImageTouchMove)
+      wheelElement.removeEventListener('touchend', handleImageTouchEnd)
     }
-  }, [isOpen, handleImageTouchStart, handleImageTouchMove, handleImageTouchEnd])
+  }, [isOpen, zoom, handleImageTouchStart, handleImageTouchMove, handleImageTouchEnd])
 
   if (photos.length === 0) return null
 
@@ -784,7 +791,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
                     type="button"
                     onClick={goPrev}
                     disabled={currentIndex === 0}
-                    className={`absolute left-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center shadow-lg transition-all md:-left-10 ${
+                    className={`absolute -left-10 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center shadow-lg transition-all ${
                       currentIndex === 0
                         ? 'cursor-not-allowed bg-muted text-muted-foreground'
                         : 'cursor-pointer bg-background text-foreground hover:bg-accent hover:text-accent-foreground'
@@ -797,7 +804,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen
                     type="button"
                     onClick={goNext}
                     disabled={currentIndex === photos.length - 1}
-                    className={`absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center shadow-lg transition-all md:-right-10 ${
+                    className={`absolute -right-10 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center shadow-lg transition-all ${
                       currentIndex === photos.length - 1
                         ? 'cursor-not-allowed bg-muted text-muted-foreground'
                         : 'cursor-pointer bg-background text-foreground hover:bg-accent hover:text-accent-foreground'
