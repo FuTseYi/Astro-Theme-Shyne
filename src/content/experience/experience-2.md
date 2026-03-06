@@ -5,7 +5,7 @@ description: key
 startDate: 2026-06-01
 endDate: 
 location: HK, China
-companyLogo: /public/favicon/logo.png
+companyLogo: /public/favicon/favicon.svg
 companyUrl: https://github.com/FuTseYi/Astro-Theme-Shyne
 tags:
   - label
