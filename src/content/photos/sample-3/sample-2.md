@@ -6,5 +6,5 @@ endDate: 2026-01-10
 favicon: '#ff7f50'
 ---
 
-![](assets/2.png) 
+![](./assets/2.png)
 

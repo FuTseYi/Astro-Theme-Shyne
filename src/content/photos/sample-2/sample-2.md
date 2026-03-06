@@ -6,5 +6,5 @@ endDate: 2026-01-10
 favicon: 😄
 ---
 
-![](assets/1.png) 
+![](./assets/1.png)
 

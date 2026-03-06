@@ -814,8 +814,8 @@ def process_photo(filepath: Path, config: Dict):
                 normalized_name = normalize_image_name(Path(display_name).name)
                 dest_path = assets_dir / normalized_name
                 copy_image(source_path, dest_path, filename)
-                processed_fm['favicon'] = f"assets/{normalized_name}"
-                log.info(f"Favicon: {display_name} → assets/{normalized_name}")
+                processed_fm['favicon'] = f"./assets/{normalized_name}"
+                log.info(f"Favicon: {display_name} → ./assets/{normalized_name}")
             except ImageNotFoundError:
                 # If favicon image not found, keep original value and warn
                 log.warn(f"Favicon image not found: {favicon_value} (in {filename}), keeping original value")

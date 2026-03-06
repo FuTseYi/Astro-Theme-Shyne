@@ -145,53 +145,27 @@ function getEntryDir(entryId: string): string {
  * @returns 解析后的 URL 或原始路径
  */
 async function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): Promise<string> {
-  // 去掉 title 等多余部分，只保留 URL
   const [urlPart] = rawSrc.split(/\s+/)
-  let src = urlPart.trim()
+  const src = urlPart.trim()
 
   if (!src) return ''
+  if (HTTP_URL_PATTERN.test(src)) return src
+  // 绝对路径视为 public 目录资源，直接返回
+  if (src.startsWith('/')) return src
 
-  // 外链直接返回
-  if (HTTP_URL_PATTERN.test(src)) {
-    return src
-  }
-
-  // 兼容写法：`/assets/1.png` 也按当前 entry 下的 assets 解析，
-  // 而不是强制要求放在 public/assets 目录
-  if (src.startsWith('/assets/')) {
-    const entryDir = getEntryDir(entryId)
-    const rel = src.slice(1) // 去掉前导 `/`，变成 `assets/...`
-    const key = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}${rel}`
-    const photoAssetIndex = await getPhotoAssetIndex()
-    const resolved = photoAssetIndex.exact.get(key)
-    return resolved ?? src
-  }
-
-  // 其余以 / 开头的仍然当作 public 下的绝对路径
-  if (src.startsWith('/')) {
-    return src
-  }
-
-  // 去掉前导的 ./ 或 ../ 这类简单前缀（目前只支持同级 ./assets/*）
-  src = src.replace(/^\.?\//, '')
-
+  // 标准格式：./assets/img.png — 剥去 ./ 后拼接完整 glob key
+  const rel = src.replace(/^\.\//, '')
   const entryDir = getEntryDir(entryId)
-  const key = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}${src}`
+  const key = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}${rel}`
   const photoAssetIndex = await getPhotoAssetIndex()
 
-  // 先尝试精确匹配
   const exactMatched = photoAssetIndex.exact.get(key)
-  if (exactMatched) {
-    return exactMatched
-  }
+  if (exactMatched) return exactMatched
 
-  // 如果精确匹配失败，尝试不区分大小写匹配（O(1) 查找）
+  // 大小写不敏感兜底（兼容不同 OS 文件系统）
   const resolved = photoAssetIndex.caseInsensitive.get(key.toLowerCase())
-  if (resolved) {
-    return resolved
-  }
+  if (resolved) return resolved
 
-  // 开发环境警告未找到的资源
   if (import.meta.env.DEV) {
     console.warn(`[Photos] Image not found: "${rawSrc}" (resolved key: "${key}")`)
   }
@@ -272,11 +246,10 @@ async function resolveFavicon(
     return { value: favicon, type: 'number' }
   }
 
-  // 图片路径（需要解析）
-  if (favicon.startsWith('/') || favicon.startsWith('./') || favicon.startsWith('assets/')) {
+  // 图片路径：绝对路径或标准相对路径 ./assets/
+  if (favicon.startsWith('/') || favicon.startsWith('./')) {
     const resolved = await resolvePhotoSrcFromBody(favicon, entryId)
-    const isImage = resolved !== favicon || favicon.startsWith('/')
-    return { value: resolved, type: isImage ? 'image' : 'emoji' }
+    return { value: resolved, type: 'image' }
   }
 
   // 默认当作 emoji
