@@ -36,7 +36,7 @@ const CONSTANTS = {
   TOUCH_CLEANUP_DELAY: 350, // ms
 } as const
 
-const PhotoGalleryModal: React.FC<Props> = ({ photos, title, description, isOpen, onClose, initialIndex = 0 }) => {
+const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, initialIndex = 0 }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
   const containerRef = useRef<HTMLDivElement | null>(null)
   const imageRefs = useRef<(HTMLDivElement | null)[]>([])
