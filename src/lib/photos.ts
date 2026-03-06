@@ -1,3 +1,4 @@
+import { getImage } from 'astro:assets'
 import { getCollection } from 'astro:content'
 
 export type TimelineIconType = 'emoji' | 'icon' | 'color' | 'number' | 'image'
@@ -12,13 +13,6 @@ const HEX_COLOR_PATTERN = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 const NUMBER_PATTERN = /^\d+$/
 const HTTP_URL_PATTERN = /^https?:\/\//
 const MARKDOWN_IMAGE_PATTERN = /!\[([^\]]*)\]\(([^)]+)\)/g
-
-/** Astro Content Collection 图片元数据 */
-interface ImageMetadata {
-  src: string
-  width: number
-  height: number
-}
 
 /** Photos Collection 条目数据结构 */
 interface PhotoEntryData {
@@ -61,18 +55,79 @@ export interface PhotoData {
   location?: string
 }
 
-// 预先把 `src/content/photos/**/assets/*` 全部收集成 URL 映射，
-// 这样正文里只写 `![](./assets/1.png)` 也能拿到打包后的真实地址。
-const photoAssetMap = import.meta.glob('/src/content/photos/**/*.{png,jpg,jpeg,gif,webp,avif,PNG,JPG,JPEG,GIF,WEBP,AVIF}', {
-  eager: true,
-  query: '?url',
-  import: 'default',
-}) as Record<string, string>
+// 预先把 `src/content/photos/**/assets/*` 全部收集出来。
+// 注意：直接使用 metadata.src 可能在产物里找不到对应文件（Astro 会二次优化），
+// 所以这里统一通过 getImage() 生成最终可访问的 URL。
+type PhotoAssetImport = string | ImageMetadata
 
-// 构建不区分大小写的索引，避免每次查询时遍历
-const photoAssetMapCaseInsensitive = new Map<string, string>(
-  Object.entries(photoAssetMap).map(([key, value]) => [key.toLowerCase(), value])
-)
+const rawPhotoAssetMap = import.meta.glob(
+  '/src/content/photos/**/*.{png,jpg,jpeg,gif,webp,avif,svg,PNG,JPG,JPEG,GIF,WEBP,AVIF,SVG}',
+  {
+    eager: true,
+    import: 'default',
+  }
+) as Record<string, PhotoAssetImport>
+
+interface PhotoAssetIndex {
+  exact: Map<string, string>
+  caseInsensitive: Map<string, string>
+}
+
+let photoAssetIndexPromise: Promise<PhotoAssetIndex> | undefined
+const optimizedImageSrcCache = new Map<string, Promise<string>>()
+
+function isImageMetadata(value: PhotoAssetImport): value is ImageMetadata {
+  return typeof value === 'object' && value !== null && 'src' in value
+}
+
+async function getOptimizedImageSrc(image: ImageMetadata): Promise<string> {
+  const cacheKey = image.src
+  const cached = optimizedImageSrcCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
+  const task = (async () => {
+    try {
+      const optimized = await getImage({ src: image })
+      return optimized.src
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.warn(`[Photos] Failed to optimize image: ${image.src}`, error)
+      }
+      return image.src
+    }
+  })()
+
+  optimizedImageSrcCache.set(cacheKey, task)
+  return task
+}
+
+async function getPhotoAssetIndex(): Promise<PhotoAssetIndex> {
+  if (!photoAssetIndexPromise) {
+    photoAssetIndexPromise = (async () => {
+      const entries = await Promise.all(
+        Object.entries(rawPhotoAssetMap).map(async ([key, value]) => {
+          if (!isImageMetadata(value)) {
+            return [key, value] as const
+          }
+
+          const optimizedSrc = await getOptimizedImageSrc(value)
+          return [key, optimizedSrc] as const
+        })
+      )
+
+      const exact = new Map<string, string>(entries)
+      const caseInsensitive = new Map<string, string>(
+        entries.map(([key, value]) => [key.toLowerCase(), value])
+      )
+
+      return { exact, caseInsensitive }
+    })()
+  }
+
+  return photoAssetIndexPromise
+}
 
 /**
  * 从 entry ID 中提取目录路径
@@ -89,7 +144,7 @@ function getEntryDir(entryId: string): string {
  * @param entryId - 集合条目 ID
  * @returns 解析后的 URL 或原始路径
  */
-function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): string {
+async function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): Promise<string> {
   // 去掉 title 等多余部分，只保留 URL
   const [urlPart] = rawSrc.split(/\s+/)
   let src = urlPart.trim()
@@ -107,7 +162,9 @@ function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): string {
     const entryDir = getEntryDir(entryId)
     const rel = src.slice(1) // 去掉前导 `/`，变成 `assets/...`
     const key = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}${rel}`
-    return photoAssetMap[key] ?? src
+    const photoAssetIndex = await getPhotoAssetIndex()
+    const resolved = photoAssetIndex.exact.get(key)
+    return resolved ?? src
   }
 
   // 其余以 / 开头的仍然当作 public 下的绝对路径
@@ -120,14 +177,16 @@ function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): string {
 
   const entryDir = getEntryDir(entryId)
   const key = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}${src}`
+  const photoAssetIndex = await getPhotoAssetIndex()
 
   // 先尝试精确匹配
-  if (photoAssetMap[key]) {
-    return photoAssetMap[key]
+  const exactMatched = photoAssetIndex.exact.get(key)
+  if (exactMatched) {
+    return exactMatched
   }
 
   // 如果精确匹配失败，尝试不区分大小写匹配（O(1) 查找）
-  const resolved = photoAssetMapCaseInsensitive.get(key.toLowerCase())
+  const resolved = photoAssetIndex.caseInsensitive.get(key.toLowerCase())
   if (resolved) {
     return resolved
   }
@@ -147,11 +206,11 @@ function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): string {
  * @param entryId - 集合条目 ID
  * @returns 照片数组
  */
-function extractPhotosFromMarkdown(
+async function extractPhotosFromMarkdown(
   body: string | undefined,
   fallbackTitle: string,
   entryId: string
-): Photo[] {
+): Promise<Photo[]> {
   const photos: Photo[] = []
   const content = body ?? ''
 
@@ -161,7 +220,7 @@ function extractPhotosFromMarkdown(
   for (const match of matches) {
     const alt = match[1]?.trim() || fallbackTitle
     const rawSrc = match[2]
-    const resolvedSrc = resolvePhotoSrcFromBody(rawSrc, entryId)
+    const resolvedSrc = await resolvePhotoSrcFromBody(rawSrc, entryId)
 
     if (!resolvedSrc) continue
 
@@ -193,11 +252,11 @@ function formatDate(date?: Date): string | undefined {
  * @param entryId - 集合条目 ID
  * @returns 包含解析后值和类型的对象
  */
-function resolveFavicon(
+async function resolveFavicon(
   favicon: string,
   iconType: TimelineIconType | undefined,
   entryId: string
-): { value: string; type: TimelineIconType } {
+): Promise<{ value: string; type: TimelineIconType }> {
   // 显式指定了类型，直接使用
   if (iconType) {
     return { value: favicon, type: iconType }
@@ -215,7 +274,7 @@ function resolveFavicon(
 
   // 图片路径（需要解析）
   if (favicon.startsWith('/') || favicon.startsWith('./') || favicon.startsWith('assets/')) {
-    const resolved = resolvePhotoSrcFromBody(favicon, entryId)
+    const resolved = await resolvePhotoSrcFromBody(favicon, entryId)
     const isImage = resolved !== favicon || favicon.startsWith('/')
     return { value: resolved, type: isImage ? 'image' : 'emoji' }
   }
@@ -231,7 +290,7 @@ function resolveFavicon(
 export async function getPhotosTimeline(): Promise<PhotoData[]> {
   const entries = await getCollection('photos')
 
-  const items: PhotoData[] = entries.map((entry) => {
+  const items: PhotoData[] = await Promise.all(entries.map(async (entry) => {
     const data = entry.data as PhotoEntryData
     const {
       title = DEFAULT_TITLE,
@@ -245,23 +304,28 @@ export async function getPhotosTimeline(): Promise<PhotoData[]> {
     } = data
 
     // 解析 favicon
-    const icon = resolveFavicon(favicon, iconType, entry.id)
+    const icon = await resolveFavicon(favicon, iconType, entry.id)
 
     // 1. 优先使用 frontmatter 声明的 images
     let photos: Photo[] =
       images && images.length > 0
-        ? images.map((img, index) => ({
-          src: img.src.src,
-          alt: img.alt || `${title} #${index + 1}`,
-          width: img.src.width,
-          height: img.src.height,
-          variant: DEFAULT_PHOTO_VARIANT,
-        }))
+        ? await Promise.all(
+          images.map(async (img, index) => {
+            const resolvedSrc = await getOptimizedImageSrc(img.src)
+            return {
+              src: resolvedSrc,
+              alt: img.alt || `${title} #${index + 1}`,
+              width: img.src.width,
+              height: img.src.height,
+              variant: DEFAULT_PHOTO_VARIANT,
+            }
+          })
+        )
         : []
 
     // 2. 如果没有 images 字段，则回退到 markdown 正文里的 `![]()` 提取
     if (photos.length === 0) {
-      photos = extractPhotosFromMarkdown(entry.body, title, entry.id)
+      photos = await extractPhotosFromMarkdown(entry.body, title, entry.id)
     }
 
     return {
@@ -276,7 +340,7 @@ export async function getPhotosTimeline(): Promise<PhotoData[]> {
       photos,
       location,
     }
-  })
+  }))
 
   // 按结束日期倒序排序（新的在前）
   items.sort((a, b) => {
