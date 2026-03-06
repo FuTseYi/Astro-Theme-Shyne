@@ -20,7 +20,7 @@ function getImageMimeType(imageUrl: string): string {
 }
 
 function createImageUrl(siteUrl: string): string {
-  return new URL(FAVICON.src, siteUrl).toString()
+  return new URL(FAVICON.png96, siteUrl).toString()
 }
 
 function createRssItem(post: CollectionEntry<'blog'>, siteUrl: string) {

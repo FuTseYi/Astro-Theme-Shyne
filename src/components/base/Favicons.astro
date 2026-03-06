@@ -1,10 +1,17 @@
 ---
-import { FAVICON } from '@/config'
+import { FAVICON, SITE } from '@/config'
 ---
 
-<link rel="icon" type="image/png" href={FAVICON.src} sizes="96x96" />
-<!-- svg conversion for current favicon is kinda complex, so commenting it out for me -->
-<!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg" /> -->
-<link rel="shortcut icon" href={FAVICON.src} />
+<!-- Modern browsers: PNG for compatibility -->
+<link rel="icon" type="image/png" href={FAVICON.png96} sizes="96x96" />
+
+<!-- Modern browsers: SVG (perfect scaling) -->
+<link rel="icon" type="image/svg+xml" href={FAVICON.svg} />
+
+<!-- Legacy browsers: ICO fallback -->
+<link rel="shortcut icon" href={FAVICON.ico} />
+
+<!-- iOS/Safari: PNG required (SVG not supported) -->
 <link rel="apple-touch-icon" sizes="180x180" href={FAVICON.appleTouchIcon} />
-<meta name="apple-mobile-web-app-title" content={FAVICON.appTitle} />
+
+<meta name="apple-mobile-web-app-title" content={SITE.title} />

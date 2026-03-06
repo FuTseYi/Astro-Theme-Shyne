@@ -6,14 +6,14 @@ export type Site = {
   footer: {
     items: (
       | {
-          type: 'text'
-          value: string
-        }
+        type: 'text'
+        value: string
+      }
       | {
-          type: 'link'
-          label: string
-          href: string
-        }
+        type: 'link'
+        label: string
+        href: string
+      }
     )[]
   }
   locale: string
@@ -39,7 +39,8 @@ export type SocialLink = {
 }
 
 export type Favicon = {
-  src: string
+  svg: string
+  png96: string
+  ico: string
   appleTouchIcon: string
-  appTitle: string
 }

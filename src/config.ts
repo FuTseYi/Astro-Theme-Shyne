@@ -27,10 +27,12 @@ export const SITE: Site = {
   projectsPerPage: 3,
 }
 
+//Use https://realfavicongenerator.net/ to generate favicons
 export const FAVICON: Favicon = {
-  src: '/favicon/logo.png',
-  appleTouchIcon: '/favicon/logo.png',
-  appTitle: 'Astro-Theme-Shyne',
+  svg: '/favicon/favicon.svg',
+  png96: '/favicon/favicon-96x96.png',
+  ico: '/favicon/favicon.ico',
+  appleTouchIcon: '/favicon/apple-touch-icon.png',
 }
 
 export const HEADER_LINKS: NavLink[] = [
