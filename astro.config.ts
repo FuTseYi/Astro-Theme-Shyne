@@ -24,9 +24,10 @@ import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import type { ExpressiveCodeTheme } from 'rehype-expressive-code'
 
 import tailwindcss from '@tailwindcss/vite'
+import { SITE } from './src/config'
 
 export default defineConfig({
-  site: 'https://shyne.vercel.app',
+  site: SITE.href,
   integrations: [react(), sitemap(), icon()],
 
   vite: {
