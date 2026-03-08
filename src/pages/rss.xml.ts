@@ -3,7 +3,6 @@ import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
 import type { CollectionEntry } from 'astro:content'
 import { getAllPosts } from '@/lib/data-utils'
-import { getSiteUrl } from '@/lib/utils'
 
 const DEFAULT_MIME_TYPE = 'image/jpeg'
 const MIME_TYPES: Record<string, string> = {
@@ -46,16 +45,16 @@ function createRssItem(post: CollectionEntry<'blog'>, siteUrl: string) {
 }
 
 // Main
-export async function GET(context: APIContext) {
+export async function GET(_context: APIContext) {
   try {
     const posts = await getAllPosts()
-    const siteUrl = getSiteUrl(context)
+    const siteUrl = SITE.href
 
     return rss({
       title: SITE.title,
       description: SITE.description,
       site: siteUrl,
-      items: posts.map((post) => createRssItem(post, siteUrl.toString())),
+      items: posts.map((post) => createRssItem(post, siteUrl)),
     })
   } catch (error) {
     console.error('Error generating RSS feed:', error)
