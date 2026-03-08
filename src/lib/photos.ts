@@ -71,15 +71,34 @@ const rawPhotoAssetMap = import.meta.glob(
 interface PhotoAssetIndex {
   exact: Map<string, string>
   caseInsensitive: Map<string, string>
+  filenameIndex?: Map<string, string>
 }
 
 let photoAssetIndexPromise: Promise<PhotoAssetIndex> | undefined
 const optimizedImageSrcCache = new Map<string, Promise<string>>()
 
+/**
+ * 类型守卫：检查值是否为 ImageMetadata
+ */
 function isImageMetadata(value: PhotoAssetImport): value is ImageMetadata {
   return typeof value === 'object' && value !== null && 'src' in value
 }
 
+/**
+ * 规范化路径为绝对路径（确保以 / 开头）
+ * @param path - 原始路径
+ * @returns 规范化后的绝对路径
+ */
+function normalizeAbsolutePath(path: string): string {
+  return path.startsWith('/') ? path : `/${path}`
+}
+
+/**
+ * 获取优化后的图片 URL
+ * 使用缓存机制避免重复优化同一张图片
+ * @param image - 图片元数据
+ * @returns 优化后的图片 URL（绝对路径）
+ */
 async function getOptimizedImageSrc(image: ImageMetadata): Promise<string> {
   const cacheKey = image.src
   const cached = optimizedImageSrcCache.get(cacheKey)
@@ -90,12 +109,15 @@ async function getOptimizedImageSrc(image: ImageMetadata): Promise<string> {
   const task = (async () => {
     try {
       const optimized = await getImage({ src: image })
-      return optimized.src
+      // getImage() 返回的路径应该已经是绝对路径，但为了安全起见进行规范化
+      return normalizeAbsolutePath(optimized.src)
     } catch (error) {
+      // 错误处理：开发环境输出警告，生产环境静默失败但返回原始路径
       if (import.meta.env.DEV) {
         console.warn(`[Photos] Failed to optimize image: ${image.src}`, error)
       }
-      return image.src
+      // Fallback: 返回原始路径（规范化后）
+      return normalizeAbsolutePath(image.src)
     }
   })()
 
@@ -109,7 +131,9 @@ async function getPhotoAssetIndex(): Promise<PhotoAssetIndex> {
       const entries = await Promise.all(
         Object.entries(rawPhotoAssetMap).map(async ([key, value]) => {
           if (!isImageMetadata(value)) {
-            return [key, value] as const
+            // 对于字符串路径，规范化后返回
+            const src = typeof value === 'string' ? value : String(value)
+            return [key, normalizeAbsolutePath(src)] as const
           }
 
           const optimizedSrc = await getOptimizedImageSrc(value)
@@ -117,12 +141,27 @@ async function getPhotoAssetIndex(): Promise<PhotoAssetIndex> {
         })
       )
 
+      // 调试：在开发环境下输出所有可用的图片路径
+      if (import.meta.env.DEV) {
+        console.log('[Photos] Available image keys:', Array.from(entries.map(([k]) => k)).slice(0, 10))
+      }
+
       const exact = new Map<string, string>(entries)
       const caseInsensitive = new Map<string, string>(
         entries.map(([key, value]) => [key.toLowerCase(), value])
       )
 
-      return { exact, caseInsensitive }
+      // 同时创建一个基于文件名的索引，用于 fallback 匹配
+      // 例如：/src/content/photos/Red Bird Challenge Camp/assets/DSC02898.JPG -> DSC02898.JPG
+      const filenameIndex = new Map<string, string>()
+      for (const [key, value] of entries) {
+        const filename = key.split('/').pop()?.toLowerCase()
+        if (filename && !filenameIndex.has(filename)) {
+          filenameIndex.set(filename, value)
+        }
+      }
+
+      return { exact, caseInsensitive, filenameIndex }
     })()
   }
 
@@ -160,17 +199,53 @@ async function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): Promise
   const photoAssetIndex = await getPhotoAssetIndex()
 
   const exactMatched = photoAssetIndex.exact.get(key)
-  if (exactMatched) return exactMatched
+  if (exactMatched) {
+    if (import.meta.env.DEV) {
+      console.log(`[Photos] Found exact match: "${rawSrc}" -> "${exactMatched}"`)
+    }
+    return exactMatched
+  }
 
   // 大小写不敏感兜底（兼容不同 OS 文件系统）
   const resolved = photoAssetIndex.caseInsensitive.get(key.toLowerCase())
-  if (resolved) return resolved
-
-  if (import.meta.env.DEV) {
-    console.warn(`[Photos] Image not found: "${rawSrc}" (resolved key: "${key}")`)
+  if (resolved) {
+    if (import.meta.env.DEV) {
+      console.log(`[Photos] Found case-insensitive match: "${rawSrc}" -> "${resolved}"`)
+    }
+    return resolved
   }
 
-  return src
+  // 如果找不到匹配的图片，尝试直接查找 assets 目录下的文件
+  // 这可能发生在 entry ID 格式不匹配的情况下
+  const fallbackKey = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}assets/${rel.split('/').pop()}`
+  const fallbackMatch = photoAssetIndex.caseInsensitive.get(fallbackKey.toLowerCase())
+  if (fallbackMatch) {
+    if (import.meta.env.DEV) {
+      console.log(`[Photos] Found fallback match: "${rawSrc}" -> "${fallbackMatch}"`)
+    }
+    return fallbackMatch
+  }
+
+  // 最后尝试通过文件名匹配（不区分大小写）
+  const filename = rel.split('/').pop()?.toLowerCase()
+  if (filename && photoAssetIndex.filenameIndex) {
+    const filenameMatch = photoAssetIndex.filenameIndex.get(filename)
+    if (filenameMatch) {
+      if (import.meta.env.DEV) {
+        console.log(`[Photos] Found filename match: "${rawSrc}" -> "${filenameMatch}"`)
+      }
+      return filenameMatch
+    }
+  }
+
+  if (import.meta.env.DEV) {
+    console.warn(`[Photos] Image not found: "${rawSrc}" (resolved key: "${key}", fallback: "${fallbackKey}", filename: "${filename}")`)
+    console.warn(`[Photos] Entry ID: "${entryId}", Entry Dir: "${entryDir}"`)
+  }
+
+  // Fallback: 如果找不到匹配的图片，返回规范化后的原始路径
+  const normalizedSrc = src.replace(/^\.\//, '')
+  return normalizeAbsolutePath(normalizedSrc)
 }
 
 /**
