@@ -14,7 +14,7 @@ const description = post.data.description || SITE.description
 const siteUrl = Astro.url.origin
 const image = new URL(FAVICON.png96, siteUrl)
 const canonicalUrl = new URL(Astro.url.pathname, siteUrl)
-const author = 'infinull'
+const author = SITE.author
 ---
 
 <title>{`${title} | ${SITE.title}`}</title>
