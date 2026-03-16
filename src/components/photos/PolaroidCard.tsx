@@ -12,6 +12,7 @@ interface Props {
   isVisible: boolean
   isClicked?: boolean
   isThumbnail?: boolean
+  enableHoverEffects?: boolean
 }
 
 const polaroidVariants: Record<PolaroidVariant, string> = {
@@ -32,6 +33,7 @@ const PolaroidCard: React.FC<Props> = ({
   isVisible,
   isClicked = false,
   isThumbnail = false,
+  enableHoverEffects = false,
 }) => {
   const baseZIndex = totalPhotos - index
   const moveDistance = index === 0 ? 0 : 25
@@ -44,7 +46,10 @@ const PolaroidCard: React.FC<Props> = ({
         'relative inline-block max-w-[70vw] cursor-pointer',
         isThumbnail
           ? 'border border-gray-200 bg-white p-1 sm:p-1.5'
-          : 'border border-gray-200 bg-white p-1 shadow-lg transition-shadow duration-300 hover:shadow-xl sm:p-1.5',
+          : cn(
+              'border border-gray-200 bg-white p-1 shadow-lg transition-shadow duration-300 sm:p-1.5',
+              enableHoverEffects && 'hover:shadow-xl',
+            ),
         polaroidVariants[variant],
         // Larger cards look better with less overlap (for main stack only).
         !isThumbnail && '-ml-4 -mt-2 sm:-ml-5 sm:-mt-3',
@@ -75,7 +80,7 @@ const PolaroidCard: React.FC<Props> = ({
         duration: 0.8,
       }}
       whileHover={
-        isClicked
+        isClicked || !enableHoverEffects
           ? {}
           : {
               x: moveDistance,

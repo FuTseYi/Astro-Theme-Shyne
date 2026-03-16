@@ -21,6 +21,15 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = React.useState(0)
   const [clickedPhotoIndex, setClickedPhotoIndex] = React.useState<number | null>(null)
+  const [enableHoverEffects, setEnableHoverEffects] = React.useState(false)
+
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)')
+    setEnableHoverEffects(mediaQuery.matches)
+    const listener = (e: MediaQueryListEvent) => setEnableHoverEffects(e.matches)
+    mediaQuery.addEventListener('change', listener)
+    return () => mediaQuery.removeEventListener('change', listener)
+  }, [])
 
   const photoRotations = React.useMemo(() => generateRotations(photos.length), [photos.length])
 
@@ -56,6 +65,7 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
               variant={photo.variant}
               isVisible={isInView}
               isClicked={clickedPhotoIndex === index}
+              enableHoverEffects={enableHoverEffects}
             />
           </div>
         ))}
