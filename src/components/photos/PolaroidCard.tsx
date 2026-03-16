@@ -15,12 +15,12 @@ interface Props {
 }
 
 const polaroidVariants: Record<PolaroidVariant, string> = {
-  // Keep variant for future metadata support, but don't lock height.
-  // Preview cards should adapt to the real photo aspect ratio.
-  '1x1': 'w-20 aspect-square',
-  '4x5': 'w-20 aspect-[4/5]',
-  '4x3': 'w-20 aspect-[4/3]',
-  '9x16': 'w-20 aspect-[9/16]',
+  // Keep variant field for metadata compatibility.
+  // Card height should follow real image aspect ratio to avoid uneven white borders.
+  '1x1': 'w-20',
+  '4x5': 'w-20',
+  '4x3': 'w-20',
+  '9x16': 'w-20',
 }
 
 const PolaroidCard: React.FC<Props> = ({
