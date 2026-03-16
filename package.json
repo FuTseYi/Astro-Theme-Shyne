@@ -1,8 +1,40 @@
 {
   "name": "astro-theme-shyne",
-  "type": "module",
   "version": "1.0.0",
+  "description": "A minimalist, opinionated blog + portfolio theme built with Astro 5, Tailwind CSS 4, and React/shadcn-ui components. Features Polaroid-style photo gallery, multi-chapter articles, and full SEO optimization.",
+  "type": "module",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FuTseYi/Astro-Theme-Shyne.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FuTseYi/Astro-Theme-Shyne/issues"
+  },
+  "homepage": "https://github.com/FuTseYi/Astro-Theme-Shyne#readme",
+  "keywords": [
+    "astro",
+    "astro-theme",
+    "blog",
+    "portfolio",
+    "tailwind",
+    "react",
+    "shadcn",
+    "polaroid",
+    "photo-gallery",
+    "minimalist",
+    "ssg",
+    "static-site-generator",
+    "personal-website"
+  ],
+  "author": {
+    "name": "FuTseYi",
+    "url": "https://github.com/FuTseYi"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "pnpm": {
     "onlyBuiltDependencies": ["sharp", "esbuild"]
   },

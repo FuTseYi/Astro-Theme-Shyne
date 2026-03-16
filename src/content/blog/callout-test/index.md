@@ -1,80 +1,121 @@
 ---
-title: Markdown Callout Examples
-description: Testing all callout/admonition types
-date: '2026-02-03'
+title: Markdown Features Guide
+description: Explore all the Markdown features supported in this theme - code highlighting, math formulas, callouts, and more
+date: 2026-03-16
 tags:
-  - test
   - markdown
-order: 
+  - tutorial
+  - documentation
 draft: false
 ---
 
-## GitHub Style Callouts
+This guide showcases the rich Markdown features available in Astro Theme Shyne, including code syntax highlighting, math formulas, callouts, and more.
 
-### Note
-> [!NOTE]
-> This is a note callout. Use it to highlight information users should take into account.
+## Code Highlighting
 
-### Tip
-> [!TIP]
-> This is a tip callout. Provides helpful suggestions to users.
+The theme uses Expressive Code and Shiki for beautiful code highlighting. Here's a TypeScript example:
 
-### Important
-> [!IMPORTANT]
-> This is an important callout. Crucial information users need to know.
+```typescript
+interface User {
+  id: number;
+  name: string;
+  email: string;
+}
 
-### Warning
-> [!WARNING]
-> This is a warning callout. Critical content requiring user attention.
+function greetUser(user: User): string {
+  return `Hello, ${user.name}!`;
+}
 
-### Caution
-> [!CAUTION]
-> This is a caution callout. Indicates potential risks or negative consequences.
+const user: User = {
+  id: 1,
+  name: "Alice",
+  email: "alice@example.com"
+};
 
-## Directive Style Callouts
-
-### Note with Custom Title
-:::note[Custom Note Title]
-This is a note with a custom title.
-:::
-
-### Tip with Custom Title
-:::tip[Pro Tip]
-This tip has a custom title to make it more specific.
-:::
-
-### Important with Custom Title
-:::important[Must Read]
-This important callout has a custom title.
-:::
-
-### Warning
-:::warning
-This is a standard warning without custom title.
-:::
-
-### Caution
-:::caution
-This is a caution callout using directive syntax.
-:::
-
-## Mixed Content Test
-
-> [!NOTE]
-> This callout contains **bold text**, *italic text*, and [a link](https://example.com).
->
-> It also has multiple paragraphs.
->
-> - Bullet point 1
-> - Bullet point 2
-> - Bullet point 3
-
-:::tip[Advanced Usage]
-You can also use code in callouts:
-
-```javascript
-console.log('Hello from a callout!');
+console.log(greetUser(user));
 ```
 
-And even more text after the code block.
-:::
+And here's some Python:
+
+```python
+def fibonacci(n: int) -> int:
+    """Calculate the nth Fibonacci number."""
+    if n <= 1:
+        return n
+    return fibonacci(n - 1) + fibonacci(n - 2)
+
+# Calculate first 10 Fibonacci numbers
+for i in range(10):
+    print(f"F({i}) = {fibonacci(i)}")
+```
+
+## Math Formulas
+
+The theme supports LaTeX math rendering via KaTeX.
+
+### Inline Math
+
+The equation $E = mc^2$ is famous.
+
+### Block Math
+
+$$
+\frac{d}{dx}\left( \int_{a}^{x} f(t)\,dt\right) = f(x)
+$$
+
+## Callouts / Admonitions
+
+Use GitHub-style callouts to highlight important information:
+
+> [!NOTE]
+> Useful information that users should know, even when skimming.
+
+> [!TIP]
+> A helpful suggestion to improve your workflow.
+
+> [!WARNING]
+> Potential problems that users should avoid.
+
+> [!CAUTION]
+> Advises about situations that could cause loss of data or hardware damage.
+
+## Tables
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| Blog | ✅ | Full-featured blog system |
+| Projects | ✅ | Portfolio showcase |
+| Photos | ✅ | Polaroid gallery |
+| Search | ✅ | Instant search |
+| RSS | ✅ | RSS feed generation |
+
+## Lists
+
+### Unordered
+
+- First item
+- Second item
+  - Nested item
+  - Another nested
+- Third item
+
+### Ordered
+
+1. First step
+2. Second step
+3. Third step
+
+## Links
+
+- Internal link: [About Page](/about)
+- External link: [Astro Documentation](https://docs.astro.build)
+
+## Images
+
+You can include images in your posts:
+
+`![Sample Image](/images/sample.jpg)`
+
+## Conclusion
+
+These features make Astro Theme Shyne perfect for technical writing and documentation.
