@@ -25,15 +25,16 @@ const formatDate = (date: string | undefined): string => {
 
 const getDateRange = (start?: string, end?: string): string => {
   const startText = formatDate(start)
-  if (!startText) return ''
-
   const endText = formatDate(end)
-  if (endText) {
+
+  if (!startText && !endText) return ''
+
+  if (startText && endText && endText !== startText) {
     return `${startText} - ${endText}`
   }
 
-  // 没有结束日期就只显示开始日期
-  return startText
+  // 仅有开始日期、仅有结束日期，或两端是同一天时都显示单个日期
+  return startText || endText
 }
 ---
 
