@@ -71,10 +71,10 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, in
   const getOffsetBounds = useCallback(
     (currentZoom: number) => {
       const maxOffsetX = (containerWidth * (currentZoom - 1)) / 2 + CONSTANTS.OFFSET_MARGIN
-      const maxOffsetY = (window.innerHeight * CONSTANTS.IMAGE_MAX_HEIGHT_RATIO * (currentZoom - 1)) / 2 + CONSTANTS.OFFSET_MARGIN
+      const maxOffsetY = (currentHeight * (currentZoom - 1)) / 2 + CONSTANTS.OFFSET_MARGIN
       return { maxOffsetX, maxOffsetY }
     },
-    [containerWidth],
+    [containerWidth, currentHeight],
   )
 
   // 切换缩放（1x <-> 2x）
