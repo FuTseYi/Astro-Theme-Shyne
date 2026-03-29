@@ -153,8 +153,13 @@ def parse_yaml_value(value: str):
     # Unquote strings
     if (value.startswith('"') and value.endswith('"')) or \
        (value.startswith("'") and value.endswith("'")):
-        return value[1:-1]
-    
+        value = value[1:-1]
+
+    # Decode common escaped newlines produced by some Obsidian/frontmatter workflows.
+    # Example: "line1\r line2" -> "line1\nline2"
+    if isinstance(value, str):
+        value = value.replace('\\r\\n', '\n').replace('\\n', '\n').replace('\\r', '\n')
+
     return value
 
 
@@ -225,6 +230,8 @@ def parse_frontmatter(content: str) -> Tuple[Dict, str]:
 def build_frontmatter_text(fm: Dict) -> str:
     """Build YAML frontmatter text from dictionary"""
     lines = ['---']
+    # Meta fields are typically single-line in frontmatter for SEO/tooling compatibility.
+    fold_to_single_line_keys = {'description', 'summary', 'excerpt'}
     
     for key, value in fm.items():
         if isinstance(value, list):
@@ -234,6 +241,24 @@ def build_frontmatter_text(fm: Dict) -> str:
         elif isinstance(value, bool):
             lines.append(f'{key}: {str(value).lower()}')
         elif isinstance(value, str):
+            # Normalize escaped CR/LF sequences to real line breaks.
+            value = value.replace('\r\n', '\n').replace('\r', '\n')
+
+            # Industry-common output: keep metadata descriptions as a single line.
+            if key in fold_to_single_line_keys:
+                value = re.sub(r'\s*\n\s*', ' ', value).strip()
+
+            # Collapse consecutive spaces for cleaner meta text.
+            if key in fold_to_single_line_keys:
+                value = re.sub(r'\s{2,}', ' ', value)
+
+            # Emit multiline strings using YAML block scalar to preserve formatting.
+            if '\n' in value:
+                lines.append(f'{key}: |')
+                for line in value.split('\n'):
+                    lines.append(f'  {line}')
+                continue
+
             # Quote strings with special characters
             if ':' in value or '#' in value or value.startswith('-'):
                 lines.append(f'{key}: "{value}"')
