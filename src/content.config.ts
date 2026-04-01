@@ -1,6 +1,6 @@
 import { glob } from 'astro/loaders'
 import { defineCollection } from 'astro:content'
-import { z } from 'astro:schema'
+import { z } from 'astro/zod'
 
 const optionalDate = z.preprocess((value) => {
   // YAML `endDate:` (empty) becomes `null`, and z.coerce.date() would turn it into 1970-01-01.
@@ -28,8 +28,8 @@ const projects = defineCollection({
     description: z.string().nullish(),
     startDate: optionalDate,
     endDate: optionalDate,
-    sourceCodeLink: z.string().url().nullish().or(z.literal('')),
-    siteLink: z.string().url().nullish().or(z.literal('')),
+    sourceCodeLink: z.string().nullish().or(z.literal('')),
+    siteLink: z.string().nullish().or(z.literal('')),
     relatedBlogsLink: z.string().nullish().or(z.literal('')),
     tags: z.array(z.string()).nullish(),
     featured: z.boolean().nullish(),
@@ -48,7 +48,7 @@ const experience = defineCollection({
       endDate: optionalDate,
       location: z.string().nullish(),
       companyLogo: image().nullish(),
-      companyUrl: z.string().url().nullish().or(z.literal('')),
+      companyUrl: z.string().nullish().or(z.literal('')),
       tags: z.array(z.string()).nullish(),
     }),
 })
