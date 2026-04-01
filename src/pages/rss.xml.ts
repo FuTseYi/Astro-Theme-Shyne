@@ -1,47 +1,17 @@
-import { SITE, FAVICON } from '@/config'
+import { SITE } from '@/config'
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
-import type { CollectionEntry } from 'astro:content'
 import { getAllPosts } from '@/lib/data-utils'
+import MarkdownIt from 'markdown-it'
+import sanitizeHtml from 'sanitize-html'
 
-const DEFAULT_MIME_TYPE = 'image/jpeg'
-const MIME_TYPES: Record<string, string> = {
-  png: 'image/png',
-  gif: 'image/gif',
-  webp: 'image/webp',
-  svg: 'image/svg+xml',
-}
+const parser = new MarkdownIt()
 
-function getImageMimeType(imageUrl: string): string {
-  const urlWithoutQuery = imageUrl.split('?')[0]
-  const extension = urlWithoutQuery.split('.').pop()?.toLowerCase() || ''
-  return MIME_TYPES[extension] || DEFAULT_MIME_TYPE
-}
-
-function createImageUrl(siteUrl: string): string {
-  return new URL(FAVICON.png96, siteUrl).toString()
-}
-
-function createRssItem(post: CollectionEntry<'blog'>, siteUrl: string) {
-  const imageUrl = createImageUrl(siteUrl)
-  const imageType = getImageMimeType(imageUrl)
-  const postUrl = new URL(`/blog/${post.id}/`, siteUrl).toString()
-
-  // RSS content: banner image, description, and read more link
-  const content = `
-    <img src="${imageUrl}" alt="${post.data.title ?? ''}" />
-    <p>${post.data.description ?? ''}</p>
-    <p><a href="${postUrl}">Read more →</a></p>
-  `.trim()
-
-  return {
-    title: post.data.title ?? '',
-    description: post.data.description ?? undefined,
-    pubDate: post.data.date ?? undefined,
-    link: `/blog/${post.id}/`,
-    content,
-    customData: `<enclosure url="${imageUrl}" type="${imageType}" />`,
-  }
+function stripInvalidXmlChars(str: string): string {
+  return str.replace(
+    /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F\uFDD0-\uFDEF\uFFFE\uFFFF]/g,
+    ''
+  )
 }
 
 // Main
@@ -54,10 +24,25 @@ export async function GET(_context: APIContext) {
       title: SITE.title,
       description: SITE.description,
       site: siteUrl,
-      items: posts.map((post) => createRssItem(post, siteUrl)),
+      items: posts.map((post) => {
+        const content = typeof post.body === 'string' ? post.body : String(post.body || '')
+        const cleanedContent = stripInvalidXmlChars(content)
+
+        return {
+          title: post.data.title ?? '',
+          description: post.data.description ?? undefined,
+          pubDate: post.data.date ?? undefined,
+          link: `/blog/${post.id}/`,
+          content: sanitizeHtml(parser.render(cleanedContent), {
+            allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img']),
+          }),
+        }
+      }),
+      customData: `<language>${SITE.locale ?? 'en'}</language>`,
     })
   } catch (error) {
     console.error('Error generating RSS feed:', error)
     return new Response('Error generating RSS feed', { status: 500 })
   }
 }
+

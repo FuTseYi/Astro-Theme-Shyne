@@ -73,6 +73,7 @@
     "gray-matter": "^4.0.3",
     "hastscript": "^9.0.1",
     "lucide-react": "^0.562.0",
+    "markdown-it": "^14.1.1",
     "mdast-util-to-string": "^4.0.0",
     "motion": "^11.11.0",
     "radix-ui": "^1.4.3",
@@ -87,6 +88,7 @@
     "remark-emoji": "^5.0.2",
     "remark-github-admonitions-to-directives": "^2.1.0",
     "remark-math": "^6.0.0",
+    "sanitize-html": "^2.17.2",
     "sharp": "^0.34.5",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
@@ -94,6 +96,8 @@
     "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
+    "@types/markdown-it": "^14.1.2",
+    "@types/sanitize-html": "^2.16.1",
     "prettier": "^3.7.4",
     "prettier-plugin-astro": "^0.14.1",
     "prettier-plugin-astro-organize-imports": "^0.4.11",
