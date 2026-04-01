@@ -758,6 +758,11 @@ def process_note(filepath: Path, config: Dict):
     
     dest_dir.mkdir(parents=True, exist_ok=True)
 
+    # Clear existing assets directory to remove orphaned images
+    assets_dir = dest_dir / 'assets'
+    if assets_dir.exists() and assets_dir.is_dir():
+        shutil.rmtree(assets_dir)
+
     # Process frontmatter
     processed_fm = parse_obsidian_frontmatter(fm, str(filepath))
 
@@ -815,6 +820,11 @@ def process_photo(filepath: Path, config: Dict):
         raise SkipFileError(f"[{filename}] {reason}")
     
     dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Clear existing assets directory to remove orphaned images
+    assets_dir = dest_dir / 'assets'
+    if assets_dir.exists() and assets_dir.is_dir():
+        shutil.rmtree(assets_dir)
 
     # Process frontmatter (title is required for photos)
     processed_fm = fm.copy()
