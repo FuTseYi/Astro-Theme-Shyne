@@ -20,32 +20,33 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
   const isInView = useInView(ref, { once: true, amount: 0.4 })
   const [isModalOpen, setIsModalOpen] = React.useState(false)
   const [selectedPhotoIndex, setSelectedPhotoIndex] = React.useState(0)
-  const [clickedPhotoIndex, setClickedPhotoIndex] = React.useState<number | null>(null)
   const [enableHoverEffects, setEnableHoverEffects] = React.useState(false)
+  const [isReady, setIsReady] = React.useState(false)
 
   React.useEffect(() => {
+    // 延迟入场动画，避开 View Transitions 和同时水合的高峰期
+    const timer = setTimeout(() => setIsReady(true), 350)
+    
     const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)')
     setEnableHoverEffects(mediaQuery.matches)
     const listener = (e: MediaQueryListEvent) => setEnableHoverEffects(e.matches)
     mediaQuery.addEventListener('change', listener)
-    return () => mediaQuery.removeEventListener('change', listener)
+    
+    return () => {
+      clearTimeout(timer)
+      mediaQuery.removeEventListener('change', listener)
+    }
   }, [])
 
   const photoRotations = React.useMemo(() => generateRotations(photos.length), [photos.length])
 
   const handlePhotoClick = (index: number) => {
-    setClickedPhotoIndex(index)
     setSelectedPhotoIndex(index)
-    setTimeout(() => {
-      setIsModalOpen(true)
-    }, 50)
+    setIsModalOpen(true)
   }
 
   const handleModalClose = () => {
     setIsModalOpen(false)
-    setTimeout(() => {
-      setClickedPhotoIndex(null)
-    }, 200)
   }
 
   return (
@@ -63,8 +64,7 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
               totalPhotos={photos.length}
               rotation={photoRotations[index]}
               variant={photo.variant}
-              isVisible={isInView}
-              isClicked={clickedPhotoIndex === index}
+              isVisible={isInView && isReady}
               enableHoverEffects={enableHoverEffects}
             />
           </div>

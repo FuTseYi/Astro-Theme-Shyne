@@ -10,7 +10,6 @@ interface Props {
   rotation: number
   variant: PolaroidVariant
   isVisible: boolean
-  isClicked?: boolean
   isThumbnail?: boolean
   enableHoverEffects?: boolean
 }
@@ -31,7 +30,6 @@ const PolaroidCard: React.FC<Props> = ({
   rotation,
   variant,
   isVisible,
-  isClicked = false,
   isThumbnail = false,
   enableHoverEffects = false,
 }) => {
@@ -55,32 +53,24 @@ const PolaroidCard: React.FC<Props> = ({
         !isThumbnail && '-ml-4 -mt-2 sm:-ml-5 sm:-mt-3',
       )}
       style={{
-        zIndex: isClicked ? -1 : baseZIndex,
-        willChange: 'transform',
+        zIndex: baseZIndex,
         contain: 'layout',
       }}
       initial="hidden"
-      animate={isClicked ? 'clicked' : isVisible ? 'show' : 'hidden'}
+      animate={isVisible ? 'show' : 'hidden'}
       variants={{
-        hidden: { scale: 0, rotate: 0, x: -60, zIndex: totalPhotos - index },
-        show: { scale: 1, rotate: rotation, x: 0 },
-        clicked: {
-          scale: 1,
-          rotate: rotation,
-          x: 0,
-          transition: { duration: 0.1 },
-        },
+        hidden: { opacity: 0, scale: 0.8, rotate: 0, x: -20, zIndex: totalPhotos - index },
+        show: { opacity: 1, scale: 1, rotate: rotation, x: 0 },
       }}
       viewport={{ once: true }}
       transition={{
-        type: 'spring',
-        stiffness: 360,
-        damping: 20,
-        delay: index * 0.05,
-        duration: 0.8,
+        type: 'tween',
+        ease: 'easeOut',
+        delay: Math.min(index * 0.03, 0.8), // 更短的最大延迟上限
+        duration: 0.4,
       }}
       whileHover={
-        isClicked || !enableHoverEffects
+        !enableHoverEffects
           ? {}
           : {
               x: moveDistance,
@@ -98,6 +88,8 @@ const PolaroidCard: React.FC<Props> = ({
       <div className="w-full overflow-hidden bg-gray-100">
         <img
           src={imgSrc}
+          width={photo.width}
+          height={photo.height}
           className="block h-auto w-full object-contain"
           loading="lazy"
           decoding="async"

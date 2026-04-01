@@ -141,11 +141,6 @@ async function getPhotoAssetIndex(): Promise<PhotoAssetIndex> {
         })
       )
 
-      // 调试：在开发环境下输出所有可用的图片路径
-      if (import.meta.env.DEV) {
-        console.log('[Photos] Available image keys:', Array.from(entries.map(([k]) => k)).slice(0, 10))
-      }
-
       const exact = new Map<string, string>(entries)
       const caseInsensitive = new Map<string, string>(
         entries.map(([key, value]) => [key.toLowerCase(), value])
@@ -200,18 +195,12 @@ async function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): Promise
 
   const exactMatched = photoAssetIndex.exact.get(key)
   if (exactMatched) {
-    if (import.meta.env.DEV) {
-      console.log(`[Photos] Found exact match: "${rawSrc}" -> "${exactMatched}"`)
-    }
     return exactMatched
   }
 
   // 大小写不敏感兜底（兼容不同 OS 文件系统）
   const resolved = photoAssetIndex.caseInsensitive.get(key.toLowerCase())
   if (resolved) {
-    if (import.meta.env.DEV) {
-      console.log(`[Photos] Found case-insensitive match: "${rawSrc}" -> "${resolved}"`)
-    }
     return resolved
   }
 
@@ -220,9 +209,6 @@ async function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): Promise
   const fallbackKey = `/src/content/photos/${entryDir ? `${entryDir}/` : ''}assets/${rel.split('/').pop()}`
   const fallbackMatch = photoAssetIndex.caseInsensitive.get(fallbackKey.toLowerCase())
   if (fallbackMatch) {
-    if (import.meta.env.DEV) {
-      console.log(`[Photos] Found fallback match: "${rawSrc}" -> "${fallbackMatch}"`)
-    }
     return fallbackMatch
   }
 
@@ -231,9 +217,6 @@ async function resolvePhotoSrcFromBody(rawSrc: string, entryId: string): Promise
   if (filename && photoAssetIndex.filenameIndex) {
     const filenameMatch = photoAssetIndex.filenameIndex.get(filename)
     if (filenameMatch) {
-      if (import.meta.env.DEV) {
-        console.log(`[Photos] Found filename match: "${rawSrc}" -> "${filenameMatch}"`)
-      }
       return filenameMatch
     }
   }

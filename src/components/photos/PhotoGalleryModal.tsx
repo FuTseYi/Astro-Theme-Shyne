@@ -887,6 +887,8 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, in
                             draggable={false}
                             src={imgSrc}
                             alt={photo.alt}
+                            width={photo.width}
+                            height={photo.height}
                             className="block max-h-[80vh] max-w-full select-none object-contain"
                             style={{
                               transform:
