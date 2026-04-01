@@ -1,5 +1,6 @@
 import { glob } from 'astro/loaders'
-import { defineCollection, z } from 'astro:content'
+import { defineCollection } from 'astro:content'
+import { z } from 'astro:schema'
 
 const optionalDate = z.preprocess((value) => {
   // YAML `endDate:` (empty) becomes `null`, and z.coerce.date() would turn it into 1970-01-01.
