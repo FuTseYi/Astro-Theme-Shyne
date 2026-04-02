@@ -66,6 +66,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, in
   const touchCleanupTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const animationTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const exitTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isFirstRenderOpenRef = useRef(true)
 
   // 计算偏移边界限制
   const getOffsetBounds = useCallback(
@@ -325,6 +326,12 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, in
 
   // 锁定 / 还原页面滚动 - 优化版
   useEffect(() => {
+    // 防止初次渲染且未打开时触发滚动恢复逻辑导致意外的页面滚动到顶部
+    if (isFirstRenderOpenRef.current) {
+      isFirstRenderOpenRef.current = false
+      if (!isOpen) return
+    }
+
     if (!isOpen) {
       // 弹窗关闭时，标记退出状态并延迟恢复 body 样式
       setIsExiting(true)
