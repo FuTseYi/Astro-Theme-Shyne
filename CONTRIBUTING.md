@@ -85,16 +85,16 @@ pnpm build
 
 **Type 类型：**
 
-| Type | Description |
-|:-----|:------------|
-| `feat` | 新功能 |
-| `fix` | Bug 修复 |
-| `docs` | 文档更新 |
-| `style` | 代码格式调整（不影响功能） |
+| Type       | Description                        |
+| :--------- | :--------------------------------- |
+| `feat`     | 新功能                             |
+| `fix`      | Bug 修复                           |
+| `docs`     | 文档更新                           |
+| `style`    | 代码格式调整（不影响功能）         |
 | `refactor` | 代码重构（既不是新功能也不是修复） |
-| `perf` | 性能优化 |
-| `test` | 测试相关 |
-| `chore` | 构建过程或辅助工具变动 |
+| `perf`     | 性能优化                           |
+| `test`     | 测试相关                           |
+| `chore`    | 构建过程或辅助工具变动             |
 
 **示例：**
 
@@ -111,6 +111,23 @@ git commit -m "docs(readme): update installation instructions"
 3. 提交 Pull Request 到 `main` 分支
 4. 填写 PR 模板中的所有必填项
 5. 等待代码审查
+
+---
+
+## 署名与许可证合规 / Attribution and License Compliance
+
+为遵循开源社区通用实践并保持许可链路清晰，请注意：
+
+1. 本项目基于 MIT 许可证发布，分发时必须保留原始许可证与版权声明。
+2. 若你的衍生项目基于本仓库，建议在 README、Credits 页面或网站页脚提供可见署名。
+3. 提交 PR 时，如引入第三方代码或资源，请在描述中注明来源与许可证。
+
+推荐署名示例 / Suggested credit line:
+
+```text
+Based on Astro Theme Shyne by FuTseYi:
+https://github.com/FuTseYi/Astro-Theme-Shyne
+```
 
 ---
 

@@ -70,26 +70,44 @@ import heroImageTwo from '/public/hero/2.png'
         <p
           class="prose prose-sm text-muted-foreground max-w-none text-center font-serif md:text-left"
         >
-          Hi, I'm Shyne — a passionate developer who loves turning ideas into
-          reality through code. With a background in computer science and years
-          of hands-on experience in full-stack development, I specialize in
-          building performant, accessible, and beautiful web applications.
+          Astro Theme Shyne came from a practical gap: many personal site themes
+          look polished but break down when content grows. I wanted one
+          foundation that could handle essays, changelogs, projects, and photo
+          stories with equal clarity.
         </p>
         <p
           class="prose prose-sm text-muted-foreground mt-4 max-w-none text-center font-serif md:text-left"
         >
-          My journey started with curiosity about how websites work, which led
-          me to dive deep into HTML, CSS, and JavaScript. Over time, I expanded
-          my toolkit to include modern frameworks like React, Vue, and of
-          course, Astro — which inspired this very theme!
+          The result is more than a homepage template. It is a narrative-first
+          system: structured blog content, contextual project cards, and a
+          Polaroid-style photo timeline that treats images as part of the story,
+          not decoration.
         </p>
         <p
           class="prose prose-sm text-muted-foreground mt-4 max-w-none text-center font-serif md:text-left"
         >
-          When I'm not coding, you'll find me exploring open-source projects,
-          writing technical articles, or contributing to the developer
-          community. I believe in continuous learning and always staying curious
-          about new technologies.
+          这个项目的目标很明确：把写作、记录、展示与归档放回同一条内容链路，
+          用一致的设计与结构降低维护成本，同时保留个人表达的温度。
+        </p>
+        <p
+          class="text-muted-foreground mt-4 max-w-none text-center font-serif leading-relaxed md:text-left"
+        >
+          This work is inspired by the craft and direction of
+          <a
+            href="https://github.com/theinfinull"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-accent underline underline-offset-4 transition-colors"
+            >@theinfinull</a
+          >
+          and
+          <a
+            href="https://github.com/needim"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="hover:text-accent underline underline-offset-4 transition-colors"
+            >@needim</a
+          >, then redesigned and expanded into an Astro-first open-source theme.
         </p>
       </div>
     </section>
@@ -106,26 +124,30 @@ import heroImageTwo from '/public/hero/2.png'
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">Productivity:</strong> Obsidian / Zotero
-            / V2ray / Clash Verge
+            <strong class="text-foreground">Core runtime:</strong> Astro 5 / React
+            19 / Tailwind CSS 4 / TypeScript
           </span>
         </li>
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">Development:</strong> VS Code / Cursor
+            <strong class="text-foreground">Content pipeline:</strong> Astro Content
+            Collections / Markdown / Expressive Code
           </span>
         </li>
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">Design:</strong> Figma / Slidev /
+            <strong class="text-foreground">Authoring workflow:</strong> VS Code /
+            Obsidian / Figma /
             <a
               href="https://realfavicongenerator.net/"
               target="_blank"
+              rel="noopener noreferrer"
               class="hover:text-accent underline underline-offset-4 transition-colors"
               >RealFaviconGenerator</a
-            >(A one-stop favicon generator for all platforms)
+            >
+            (cross-platform favicon generation)
           </span>
         </li>
       </ul>
@@ -141,8 +163,9 @@ import heroImageTwo from '/public/hero/2.png'
       <p
         class="text-muted-foreground max-w-3xl text-center font-serif leading-relaxed md:text-left"
       >
-        This site is supported by resources and technical services from the
-        following projects/providers:
+        The site is operated with a production-style setup where each layer has
+        a clear responsibility, from DNS and edge delivery to hosting and
+        framework.
       </p>
       <ul
         class="text-muted-foreground mt-4 flex flex-col space-y-2 text-left font-serif"
@@ -150,31 +173,54 @@ import heroImageTwo from '/public/hero/2.png'
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">Domain registration:</strong> Spaceship
+            <strong class="text-foreground">Domain:</strong> Spaceship
           </span>
         </li>
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">DNS resolution and proxy:</strong> Cloudflare
+            <strong class="text-foreground">DNS and edge proxy:</strong> Cloudflare
           </span>
         </li>
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">Web hosting:</strong> Vercel
+            <strong class="text-foreground">Hosting and deployment:</strong>
+            Vercel
           </span>
         </li>
         <li class="flex items-start gap-2">
           <span class="text-accent shrink-0">▹</span>
           <span class="inline-block">
-            <strong class="text-foreground">Framework & theme:</strong>
+            <strong class="text-foreground">Framework and theme:</strong>
             Astro +
             <a
               href="https://github.com/FuTseYi/Astro-Theme-Shyne"
               target="_blank"
+              rel="noopener noreferrer"
               class="hover:text-accent underline underline-offset-4 transition-colors"
               >Astro-Theme-Shyne</a
+            >
+          </span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-accent shrink-0">▹</span>
+          <span class="inline-block">
+            <strong class="text-foreground">Inspiration lineage:</strong>
+            <a
+              href="https://github.com/theinfinull/portfolio"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-accent underline underline-offset-4 transition-colors"
+              >theinfinull/portfolio</a
+            >
+            and
+            <a
+              href="https://github.com/needim/ned.im"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-accent underline underline-offset-4 transition-colors"
+              >needim/ned.im</a
             >
           </span>
         </li>

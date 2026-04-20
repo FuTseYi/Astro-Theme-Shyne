@@ -39,15 +39,15 @@ A **minimalist**, **opinionated** blog + portfolio theme built with **Astro 5**,
 
 ### 🎯 核心功能
 
-| 功能 / Feature | 描述 / Description |
-|:---------------|:------------------|
-| **静态站点生成** | 基于 Astro 5 的 SSG 模式，零 JS 加载，高性能 |
-| **博客系统** | 支持多章节长文、子文章、标签、阅读时间计算 |
-| **作品集展示** | 项目卡片、时间线布局、精选项目标记 |
-| **Polaroid 相册** ✨ | 独特的宝丽来风格照片时间线，灯箱预览 |
-| **主题切换** | 浅色/深色模式，支持 Tailwind CSS 4 变量 |
-| **SEO 优化** | RSS、Sitemap、Meta 标签、Open Graph |
-| **即时搜索** | 前端即时搜索，无需后端服务 |
+| 功能 / Feature      | 描述 / Description                           |
+| :------------------ | :------------------------------------------- |
+| **静态站点生成**    | 基于 Astro 5 的 SSG 模式，零 JS 加载，高性能 |
+| **博客系统**        | 支持多章节长文、子文章、标签、阅读时间计算   |
+| **作品集展示**      | 项目卡片、时间线布局、精选项目标记           |
+| **Polaroid 相册** ✨ | 独特的宝丽来风格照片时间线，灯箱预览         |
+| **主题切换**        | 浅色/深色模式，支持 Tailwind CSS 4 变量      |
+| **SEO 优化**        | RSS、Sitemap、Meta 标签、Open Graph          |
+| **即时搜索**        | 前端即时搜索，无需后端服务                   |
 
 ### 🛠️ 技术栈
 
@@ -60,17 +60,17 @@ A **minimalist**, **opinionated** blog + portfolio theme built with **Astro 5**,
 
 ### 📱 页面路由
 
-| 路由 / Route | 描述 / Description |
-|:-------------|:-------------------|
-| `/` | 首页 - 个人简介、经历、项目、文章 |
-| `/blog` | 博客列表 - 按年份分组 |
-| `/blog/[id]` | 博客详情 - 支持子文章 |
-| `/projects` | 项目作品列表 |
-| `/photos` | **Polaroid 相册时间线** ✨ |
-| `/experience` | 经历时间线 |
-| `/about` | 关于页面 |
-| `/tags` | 标签云 |
-| `/search` | 即时搜索 |
+| 路由 / Route  | 描述 / Description                |
+| :------------ | :-------------------------------- |
+| `/`           | 首页 - 个人简介、经历、项目、文章 |
+| `/blog`       | 博客列表 - 按年份分组             |
+| `/blog/[id]`  | 博客详情 - 支持子文章             |
+| `/projects`   | 项目作品列表                      |
+| `/photos`     | **Polaroid 相册时间线** ✨         |
+| `/experience` | 经历时间线                        |
+| `/about`      | 关于页面                          |
+| `/tags`       | 标签云                            |
+| `/search`     | 即时搜索                          |
 
 ---
 
@@ -237,12 +237,12 @@ git push -u origin main
 ### 依赖版本
 
 | 包 / Package | 版本 / Version |
-|:-------------|:---------------|
-| Astro | ^5.16.15 |
-| React | 19.2.3 |
-| Tailwind CSS | ^4.1.18 |
-| TypeScript | ^5.9.3 |
-| Node.js | >=20 |
+| :----------- | :------------- |
+| Astro        | ^5.16.15       |
+| React        | 19.2.3         |
+| Tailwind CSS | ^4.1.18        |
+| TypeScript   | ^5.9.3         |
+| Node.js      | >=20           |
 
 ### 目录结构
 
@@ -278,6 +278,53 @@ Astro-Theme-Shyne/
 3. 提交更改 (`git commit -m 'Add amazing feature'`)
 4. 推送分支 (`git push origin feature/amazing-feature`)
 5. 打开 Pull Request
+
+---
+
+## 来源与署名 / Attribution
+
+本项目在设计理念与部分实现方式上参考了以下优秀开源项目：
+
+- [theinfinull/portfolio](https://github.com/theinfinull/portfolio)
+- [needim/ned.im](https://github.com/needim/ned.im)
+
+This project is inspired by and references ideas/patterns from:
+
+- [theinfinull/portfolio](https://github.com/theinfinull/portfolio)
+- [needim/ned.im](https://github.com/needim/ned.im)
+
+### 复用本仓库时的署名说明 / Reuse Attribution
+
+Required (MIT compliance):
+
+- You must keep the original license text and copyright notice when reusing, modifying, or redistributing this repository.
+- You must include the MIT license in your distributed copy.
+
+建议署名 / Recommended visible credit:
+
+- If your project is based on this repository, add visible attribution in one of these places: README, project credits page, or site footer.
+- 如果你的项目基于本仓库进行二次开发，建议在 README、项目鸣谢页或网站页脚添加可见署名。
+
+推荐署名示例（可直接复制）/ Copy-paste attribution templates:
+
+README / Credits:
+
+```text
+Based on Astro Theme Shyne by FuTseYi:
+https://github.com/FuTseYi/Astro-Theme-Shyne
+```
+
+Website footer:
+
+```text
+Theme based on Astro Theme Shyne by FuTseYi
+```
+
+复用检查清单 / Reuse checklist:
+
+- Keep MIT license text in your repository or distribution package.
+- Retain original copyright notice.
+- Add visible attribution (recommended).
 
 ---
 
