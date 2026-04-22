@@ -17,17 +17,25 @@
   h4,
   h5,
   h6 {
-    @apply text-balance;
+    @apply text-wrap;
+    word-break: normal;
+    line-break: auto;
   }
 
   p {
-    @apply text-pretty;
+    text-wrap: wrap;
+    word-break: normal;
+    line-break: auto;
   }
 }
 
 @layer components {
   .prose {
     @apply text-foreground text-base leading-7;
+    --prose-scroll-accent: var(--accent);
+    --prose-scroll-thumb-alpha: 30%;
+    --prose-scroll-thumb-hover-alpha: 44%;
+    --prose-scroll-hint-alpha: 14%;
 
     :where(p):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground/80 my-5;
@@ -100,8 +108,86 @@
       @apply my-8 border-t;
     }
 
+    :where(table, pre):not(:where(.not-prose, .not-prose *)) {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-x: contain;
+      touch-action: pan-x;
+      scrollbar-gutter: stable;
+      scrollbar-width: thin;
+      scrollbar-color: color-mix(
+          in oklch,
+          var(--prose-scroll-accent) var(--prose-scroll-thumb-alpha),
+          transparent
+        )
+        transparent;
+    }
+
+    @media (max-width: 768px) and (hover: none) and (pointer: coarse) {
+      :where(table, pre):not(:where(.not-prose, .not-prose *)) {
+        background-image:
+          linear-gradient(
+            to right,
+            var(--background) 34%,
+            color-mix(in oklch, var(--background) 0%, transparent)
+          ),
+          linear-gradient(
+            to left,
+            var(--background) 34%,
+            color-mix(in oklch, var(--background) 0%, transparent)
+          ),
+          radial-gradient(
+            farthest-side at 0 50%,
+            color-mix(
+              in oklch,
+              var(--prose-scroll-accent) var(--prose-scroll-hint-alpha),
+              transparent
+            ),
+            transparent
+          ),
+          radial-gradient(
+            farthest-side at 100% 50%,
+            color-mix(
+              in oklch,
+              var(--prose-scroll-accent) var(--prose-scroll-hint-alpha),
+              transparent
+            ),
+            transparent
+          );
+        background-position: left center, right center, left center, right center;
+        background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+        background-repeat: no-repeat;
+        background-attachment: local, local, scroll, scroll;
+      }
+    }
+
+    :where(table, pre):not(:where(.not-prose, .not-prose *))::-webkit-scrollbar {
+      height: 6px;
+    }
+
+    :where(table, pre):not(:where(.not-prose, .not-prose *))::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    :where(table, pre):not(:where(.not-prose, .not-prose *))::-webkit-scrollbar-thumb {
+      background-color: color-mix(
+        in oklch,
+        var(--prose-scroll-accent) var(--prose-scroll-thumb-alpha),
+        transparent
+      );
+      border-radius: 9999px;
+    }
+
+    :where(table, pre):not(:where(.not-prose, .not-prose *)):hover::-webkit-scrollbar-thumb {
+      background-color: color-mix(
+        in oklch,
+        var(--prose-scroll-accent) var(--prose-scroll-thumb-hover-alpha),
+        transparent
+      );
+    }
+
     :where(table):not(:where(.not-prose, .not-prose *)) {
-      @apply mx-auto my-6 block max-w-fit overflow-x-auto text-sm;
+      @apply mx-auto my-6 block max-w-full min-w-full w-max overflow-x-auto text-sm;
+      overflow-y: hidden;
     }
 
     :where(thead):not(:where(.not-prose, .not-prose *)) {
@@ -111,6 +197,9 @@
     :where(th):not(:where(.not-prose, .not-prose *)) {
       @apply px-4 py-2 font-medium;
       @apply text-left [[align=center]]:text-center [[align=right]]:text-right;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
     }
 
     :where(tr):not(:where(.not-prose, .not-prose *)) {
@@ -118,8 +207,11 @@
     }
 
     :where(td):not(:where(.not-prose, .not-prose *)) {
-      @apply text-foreground/80 small px-4 py-2 align-top wrap-break-word *:first:mt-0! *:last:mb-0!;
+      @apply text-foreground/80 small px-4 py-2 align-top *:first:mt-0! *:last:mb-0!;
       @apply text-left [[align=center]]:text-center [[align=right]]:text-right;
+      white-space: nowrap;
+      word-break: keep-all;
+      overflow-wrap: normal;
     }
 
     :where(img, video, figure, .expressive-code):not(
@@ -129,7 +221,7 @@
     }
 
     :where(pre):not(:where(.not-prose, .not-prose *)) {
-      @apply max-h-[min(68vh,1000px)]! overflow-y-auto [&::-webkit-scrollbar-corner]:hidden;
+      @apply max-h-[min(68vh,1000px)]! overflow-x-auto overflow-y-auto [&::-webkit-scrollbar-corner]:hidden;
     }
 
     :where(summary):not(:where(.not-prose, .not-prose *)) {

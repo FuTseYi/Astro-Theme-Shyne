@@ -118,9 +118,7 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
         </p>
 
         <p class="text-muted-foreground/80 mb-6 text-sm">
-          <span>{formattedDate}</span> &nbsp;•&nbsp; {
-            postReadingTime
-          }
+          <span>{formattedDate}</span> &nbsp;•&nbsp; {postReadingTime}
           {
             !isCurrentSubpost && combinedReadingTime && (
               <> ( {combinedReadingTime} total )</>
@@ -202,8 +200,8 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
     aria-label="回到顶部（阅读进度 0%）"
   >
     <svg class="progress-ring" viewBox="0 0 56 56" aria-hidden="true">
-      <circle class="progress-ring-bg" cx="28" cy="28" r="24" />
-      <circle class="progress-ring-circle" cx="28" cy="28" r="24" />
+      <circle class="progress-ring-bg" cx="28" cy="28" r="24"></circle>
+      <circle class="progress-ring-circle" cx="28" cy="28" r="24"></circle>
     </svg>
     <div class="progress-center" aria-hidden="true">
       <span class="progress-text">0%</span>
@@ -222,8 +220,7 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
             stroke="currentColor"
             stroke-width="2.5"
             stroke-linecap="round"
-            stroke-linejoin="round"
-          />
+            stroke-linejoin="round"></path>
         </svg>
       </span>
     </div>
@@ -232,8 +229,11 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
   <style>
     #reading-progress {
       -webkit-tap-highlight-color: transparent;
-      filter: drop-shadow(0 2px 10px color-mix(in oklch, var(--foreground) 10%, transparent));
-      transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      filter: drop-shadow(
+        0 2px 10px color-mix(in oklch, var(--foreground) 10%, transparent)
+      );
+      transition:
+        transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
         opacity 0.2s ease;
     }
 
@@ -288,7 +288,9 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
     .progress-text,
     .progress-arrow {
       grid-area: 1 / 1;
-      transition: opacity 0.15s ease, transform 0.15s ease;
+      transition:
+        opacity 0.15s ease,
+        transform 0.15s ease;
     }
 
     /* 默认显示百分比 */
@@ -366,7 +368,9 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
       const text = root?.querySelector('.progress-text') as HTMLElement | null
 
       // 文章内容：本页只有一个主要 article
-      const article = document.querySelector('article.prose') || document.querySelector('article')
+      const article =
+        document.querySelector('article.prose') ||
+        document.querySelector('article')
 
       const r = 24
       const circumference = 2 * Math.PI * r
