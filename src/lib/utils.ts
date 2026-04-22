@@ -29,10 +29,12 @@ export function readingTime(wordCount: number): string {
 
 export function getHeadingMargin(depth: number): string {
   const margins: Record<number, string> = {
-    3: 'ml-4',
-    4: 'ml-8',
-    5: 'ml-12',
-    6: 'ml-16',
+    1: 'ml-0 text-sm font-semibold',
+    2: 'ml-0 text-sm font-medium',
+    3: 'ml-3 text-[13px]',
+    4: 'ml-6 text-[13px]',
+    5: 'ml-9 text-xs',
+    6: 'ml-12 text-xs',
   }
   return margins[depth] || ''
 }

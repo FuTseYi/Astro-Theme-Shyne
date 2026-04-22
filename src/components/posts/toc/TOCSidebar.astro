@@ -18,7 +18,7 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
   sections.length > 0 && (
     <div
       id="toc-sidebar-container"
-      class="sticky top-20 col-start-1 row-start-2 row-span-2 mr-8 ml-auto hidden h-[calc(100vh-5rem)] max-w-md xl:block"
+      class="sticky top-20 col-start-1 row-span-2 row-start-2 mr-8 ml-auto hidden h-[calc(100vh-5rem)] max-w-md xl:block"
     >
       <ScrollArea
         client:load
@@ -49,8 +49,10 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
                   <ul class="flex list-none flex-col gap-y-2">
                     {section.headings.map((heading) => (
                       <li
+                        data-toc-item
+                        data-heading-depth={heading.depth}
                         class={cn(
-                          'text-sm',
+                          'border-border/50 relative border-l pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
                           getHeadingMargin(heading.depth),
                           isCurrentSubpost
                             ? 'text-foreground/40'
@@ -63,7 +65,7 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
                               ? `/blog/${parentId}#${heading.slug}`
                               : `#${heading.slug}`
                           }
-                          class="marker:text-foreground/30 list-none underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit"
+                          class="toc-link marker:text-foreground/30 focus-visible:ring-ring block list-none rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
                           data-heading-link={heading.slug}
                         >
                           {heading.text}
@@ -105,8 +107,10 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
                       </li>
                       {section.headings.map((heading) => (
                         <li
+                          data-toc-item
+                          data-heading-depth={heading.depth}
                           class={cn(
-                            'text-xs',
+                            'border-border/40 relative border-l pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
                             getHeadingMargin(heading.depth),
                             section.subpostId === currentPostId
                               ? 'text-foreground/60'
@@ -119,7 +123,7 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
                                 ? `#${heading.slug}`
                                 : `/blog/${section.subpostId}#${heading.slug}`
                             }
-                            class="marker:text-foreground/30 hover:text-foreground/60 list-none underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit"
+                            class="toc-link marker:text-foreground/30 hover:text-foreground/60 focus-visible:ring-ring block list-none rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
                             data-heading-link={
                               section.subpostId === currentPostId
                                 ? heading.slug
@@ -198,10 +202,15 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
   }
 
   class HeadingRegions {
+    static getDepth(heading: HTMLElement): number {
+      const level = Number(heading.tagName.toLowerCase().replace('h', ''))
+      return Number.isNaN(level) ? 6 : level
+    }
+
     static build() {
       state.headings = Array.from(
         document.querySelectorAll<HTMLElement>(
-          '.prose h2, .prose h3, .prose h4, .prose h5, .prose h6',
+          '.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6',
         ),
       )
 
@@ -223,38 +232,28 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
     static getVisibleIds(): string[] {
       if (state.headings.length === 0) return []
 
-      const viewportTop = window.scrollY + HEADER_OFFSET
-      const viewportBottom = window.scrollY + window.innerHeight
-      const visibleIds = new Set<string>()
+      const anchorY = window.scrollY + HEADER_OFFSET + 8
+      let currentIndex = state.headings.findLastIndex(
+        (heading) => heading.offsetTop <= anchorY,
+      )
 
-      const isInViewport = (top: number, bottom: number) =>
-        (top >= viewportTop && top <= viewportBottom) ||
-        (bottom >= viewportTop && bottom <= viewportBottom) ||
-        (top <= viewportTop && bottom >= viewportBottom)
+      if (currentIndex < 0) currentIndex = 0
 
-      state.headings.forEach((heading) => {
-        const headingBottom = heading.offsetTop + heading.offsetHeight
-        if (isInViewport(heading.offsetTop, headingBottom)) {
-          visibleIds.add(heading.id)
+      const currentHeading = state.headings[currentIndex]
+      const currentDepth = this.getDepth(currentHeading)
+
+      if (currentDepth <= 2) {
+        return [currentHeading.id]
+      }
+
+      for (let i = currentIndex - 1; i >= 0; i -= 1) {
+        const candidate = state.headings[i]
+        if (this.getDepth(candidate) === 2) {
+          return [candidate.id, currentHeading.id]
         }
-      })
+      }
 
-      state.regions.forEach((region) => {
-        if (region.start <= viewportBottom && region.end >= viewportTop) {
-          const heading = document.getElementById(region.id)
-          if (heading) {
-            const headingBottom = heading.offsetTop + heading.offsetHeight
-            if (
-              region.end > headingBottom &&
-              (headingBottom < viewportBottom || viewportTop < region.end)
-            ) {
-              visibleIds.add(region.id)
-            }
-          }
-        }
-      })
-
-      return Array.from(visibleIds)
+      return [currentHeading.id]
     }
   }
 
@@ -276,15 +275,27 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
     static update(headingIds: string[]) {
       state.links.forEach((link) => {
         link.classList.remove('text-foreground')
+        link.classList.remove('font-medium')
+        link.removeAttribute('aria-current')
+
+        const item = link.closest('[data-toc-item]')
+        item?.classList.remove('toc-item-active')
       })
 
-      headingIds.forEach((id) => {
+      headingIds.forEach((id, index) => {
         if (id) {
           const activeLink = document.querySelector(
             `#toc-sidebar-container [data-heading-link="${id}"]`,
-          )
+          ) as HTMLElement | null
           if (activeLink) {
             activeLink.classList.add('text-foreground')
+            if (index === headingIds.length - 1) {
+              activeLink.classList.add('font-medium')
+              activeLink.setAttribute('aria-current', 'location')
+            }
+
+            const item = activeLink.closest('[data-toc-item]')
+            item?.classList.add('toc-item-active')
           }
         }
       })
@@ -422,3 +433,15 @@ const parentId = isCurrentSubpost ? getParentId(currentPostId) : currentPostId
   })
   document.addEventListener('astro:before-swap', () => TOCController.cleanup())
 </script>
+
+<style>
+  #toc-sidebar-container .toc-item-active {
+    border-left-color: hsl(var(--primary) / 0.55);
+    background-color: hsl(var(--muted) / 0.35);
+    border-radius: 0.375rem;
+  }
+
+  #toc-sidebar-container .toc-item-active::before {
+    background-color: hsl(var(--primary));
+  }
+</style>

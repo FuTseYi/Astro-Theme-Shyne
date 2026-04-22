@@ -70,15 +70,17 @@ const { headings } = Astro.props
             >
               {headings.map((heading) => (
                 <li
+                  data-mobile-toc-item
+                  data-heading-depth={heading.depth}
                   class={cn(
-                    'px-4 text-sm',
+                    'border-border/50 relative border-l pr-4 pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
                     getHeadingMargin(heading.depth),
-                    'text-foreground/60'
+                    'text-foreground/60',
                   )}
                 >
                   <a
                     href={`#${heading.slug}`}
-                    class="mobile-toc-item underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit"
+                    class="mobile-toc-item focus-visible:ring-ring block rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
                     data-heading-id={heading.slug}
                   >
                     {heading.text}
@@ -111,13 +113,13 @@ const { headings } = Astro.props
 
     reset() {
       this.progressCircle = document.getElementById(
-        'mobile-toc-progress-circle'
+        'mobile-toc-progress-circle',
       )
       this.currentSectionText = document.getElementById(
-        'mobile-toc-current-section'
+        'mobile-toc-current-section',
       )
       this.detailsElement = document.querySelector(
-        '#mobile-toc-container details'
+        '#mobile-toc-container details',
       )
       this.listElement = document.getElementById('mobile-table-of-contents')
       const tocContainer = document.getElementById('mobile-toc-container')
@@ -164,11 +166,16 @@ const { headings } = Astro.props
   }
 
   class HeadingRegions {
+    static getDepth(heading: HTMLElement): number {
+      const level = Number(heading.tagName.toLowerCase().replace('h', ''))
+      return Number.isNaN(level) ? 6 : level
+    }
+
     static build() {
       state.headings = Array.from(
         document.querySelectorAll<HTMLElement>(
-          '.prose h2, .prose h3, .prose h4, .prose h5, .prose h6'
-        )
+          '.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6',
+        ),
       )
 
       if (state.headings.length === 0) {
@@ -189,38 +196,28 @@ const { headings } = Astro.props
     static getVisibleIds(): string[] {
       if (state.headings.length === 0) return []
 
-      const viewportTop = window.scrollY + HEADER_OFFSET
-      const viewportBottom = window.scrollY + window.innerHeight
-      const visibleIds = new Set<string>()
+      const anchorY = window.scrollY + HEADER_OFFSET + 8
+      let currentIndex = state.headings.findLastIndex(
+        (heading) => heading.offsetTop <= anchorY,
+      )
 
-      const isInViewport = (top: number, bottom: number) =>
-        (top >= viewportTop && top <= viewportBottom) ||
-        (bottom >= viewportTop && bottom <= viewportBottom) ||
-        (top <= viewportTop && bottom >= viewportBottom)
+      if (currentIndex < 0) currentIndex = 0
 
-      state.headings.forEach((heading) => {
-        const headingBottom = heading.offsetTop + heading.offsetHeight
-        if (isInViewport(heading.offsetTop, headingBottom)) {
-          visibleIds.add(heading.id)
+      const currentHeading = state.headings[currentIndex]
+      const currentDepth = this.getDepth(currentHeading)
+
+      if (currentDepth <= 2) {
+        return [currentHeading.id]
+      }
+
+      for (let i = currentIndex - 1; i >= 0; i -= 1) {
+        const candidate = state.headings[i]
+        if (this.getDepth(candidate) === 2) {
+          return [candidate.id, currentHeading.id]
         }
-      })
+      }
 
-      state.regions.forEach((region) => {
-        if (region.start <= viewportBottom && region.end >= viewportTop) {
-          const heading = document.getElementById(region.id)
-          if (heading) {
-            const headingBottom = heading.offsetTop + heading.offsetHeight
-            if (
-              region.end > headingBottom &&
-              (headingBottom < viewportBottom || viewportTop < region.end)
-            ) {
-              visibleIds.add(region.id)
-            }
-          }
-        }
-      })
-
-      return Array.from(visibleIds)
+      return [currentHeading.id]
     }
   }
 
@@ -245,15 +242,36 @@ const { headings } = Astro.props
       state.listElement.querySelectorAll('.mobile-toc-item').forEach((item) => {
         const tocItem = item as HTMLElement
         const headingId = tocItem.dataset.headingId
+
+        tocItem.classList.remove('font-medium')
+        tocItem.removeAttribute('aria-current')
+        tocItem
+          .closest('[data-mobile-toc-item]')
+          ?.classList.remove('mobile-toc-item-active')
+
         if (headingId && headingIds.includes(headingId)) {
           tocItem.classList.add('text-foreground')
+          tocItem
+            .closest('[data-mobile-toc-item]')
+            ?.classList.add('mobile-toc-item-active')
         } else {
           tocItem.classList.remove('text-foreground')
         }
       })
 
       if (headingIds.length > 0) {
-        this.scrollToActive(headingIds[0])
+        const currentId = headingIds[headingIds.length - 1]
+        const currentItem = state.listElement.querySelector(
+          `[data-heading-id="${currentId}"]`,
+        ) as HTMLElement | null
+        if (currentItem) {
+          currentItem.classList.add('font-medium')
+          currentItem.setAttribute('aria-current', 'location')
+        }
+      }
+
+      if (headingIds.length > 0) {
+        this.scrollToActive(headingIds[headingIds.length - 1])
       }
 
       this.updateCurrentSectionText(headingIds)
@@ -265,14 +283,13 @@ const { headings } = Astro.props
       let textToShow = INITIAL_OVERVIEW_TEXT
 
       if (headingIds.length > 0) {
-        const activeTexts = state.headings
-          .filter(
-            (heading) => headingIds.includes(heading.id) && heading.textContent
-          )
-          .map((heading) => heading.textContent!.trim())
+        const currentId = headingIds[headingIds.length - 1]
+        const activeHeading = state.headings.find(
+          (heading) => heading.id === currentId,
+        )
 
-        if (activeTexts.length > 0) {
-          textToShow = activeTexts.join(', ')
+        if (activeHeading?.textContent) {
+          textToShow = activeHeading.textContent.trim()
         }
       }
 
@@ -283,7 +300,7 @@ const { headings } = Astro.props
       if (!state.listElement) return
 
       const activeItem = state.listElement.querySelector(
-        `[data-heading-id="${activeHeadingId}"]`
+        `[data-heading-id="${activeHeadingId}"]`,
       )
       if (!activeItem) return
 
@@ -300,8 +317,8 @@ const { headings } = Astro.props
         0,
         Math.min(
           currentItemTop - (containerHeight - itemHeight) / 2,
-          scrollContainer.scrollHeight - scrollContainer.clientHeight
-        )
+          scrollContainer.scrollHeight - scrollContainer.clientHeight,
+        ),
       )
 
       if (Math.abs(targetScroll - scrollContainer.scrollTop) > 5) {
@@ -341,7 +358,7 @@ const { headings } = Astro.props
         state.scrollArea.addEventListener(
           'scroll',
           () => TOCHeaderScrollMask.update(),
-          { passive: true }
+          { passive: true },
         )
       }
 
@@ -454,6 +471,18 @@ const { headings } = Astro.props
   window.addEventListener('scroll-area-hydrated', handleScrollAreaHydrated)
 
   document.addEventListener('astro:before-swap', () =>
-    MobileTOCController.cleanup()
+    MobileTOCController.cleanup(),
   )
 </script>
+
+<style>
+  #mobile-table-of-contents .mobile-toc-item-active {
+    border-left-color: hsl(var(--primary) / 0.55);
+    background-color: hsl(var(--muted) / 0.35);
+    border-radius: 0.375rem;
+  }
+
+  #mobile-table-of-contents .mobile-toc-item-active::before {
+    background-color: hsl(var(--primary));
+  }
+</style>
