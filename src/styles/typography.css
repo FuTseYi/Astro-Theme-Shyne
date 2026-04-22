@@ -33,9 +33,21 @@
   .prose {
     @apply text-foreground text-base leading-7;
     --prose-scroll-accent: var(--accent);
-    --prose-scroll-thumb-alpha: 30%;
-    --prose-scroll-thumb-hover-alpha: 44%;
-    --prose-scroll-hint-alpha: 14%;
+    --prose-scroll-thumb-color: color-mix(
+      in oklch,
+      var(--prose-scroll-accent) 30%,
+      transparent
+    );
+    --prose-scroll-thumb-hover-color: color-mix(
+      in oklch,
+      var(--prose-scroll-accent) 44%,
+      transparent
+    );
+    --prose-scroll-hint-color: color-mix(
+      in oklch,
+      var(--prose-scroll-accent) 14%,
+      transparent
+    );
 
     :where(p):not(:where(.not-prose, .not-prose *)) {
       @apply text-foreground/80 my-5;
@@ -113,13 +125,6 @@
       overscroll-behavior-x: contain;
       touch-action: pan-x;
       scrollbar-gutter: stable;
-      scrollbar-width: thin;
-      scrollbar-color: color-mix(
-          in oklch,
-          var(--prose-scroll-accent) var(--prose-scroll-thumb-alpha),
-          transparent
-        )
-        transparent;
     }
 
     @media (max-width: 768px) and (hover: none) and (pointer: coarse) {
@@ -137,20 +142,12 @@
           ),
           radial-gradient(
             farthest-side at 0 50%,
-            color-mix(
-              in oklch,
-              var(--prose-scroll-accent) var(--prose-scroll-hint-alpha),
-              transparent
-            ),
+            var(--prose-scroll-hint-color),
             transparent
           ),
           radial-gradient(
             farthest-side at 100% 50%,
-            color-mix(
-              in oklch,
-              var(--prose-scroll-accent) var(--prose-scroll-hint-alpha),
-              transparent
-            ),
+            var(--prose-scroll-hint-color),
             transparent
           );
         background-position: left center, right center, left center, right center;
@@ -160,29 +157,32 @@
       }
     }
 
-    :where(table, pre):not(:where(.not-prose, .not-prose *))::-webkit-scrollbar {
-      height: 6px;
-    }
+    @media (hover: hover) and (pointer: fine) {
+      :where(table, pre):not(:where(.not-prose, .not-prose *)) {
+        scrollbar-width: thin;
+        scrollbar-color: var(--prose-scroll-thumb-color) transparent;
+      }
 
-    :where(table, pre):not(:where(.not-prose, .not-prose *))::-webkit-scrollbar-track {
-      background: transparent;
-    }
+      table::-webkit-scrollbar,
+      pre::-webkit-scrollbar {
+        height: 6px;
+      }
 
-    :where(table, pre):not(:where(.not-prose, .not-prose *))::-webkit-scrollbar-thumb {
-      background-color: color-mix(
-        in oklch,
-        var(--prose-scroll-accent) var(--prose-scroll-thumb-alpha),
-        transparent
-      );
-      border-radius: 9999px;
-    }
+      table::-webkit-scrollbar-track,
+      pre::-webkit-scrollbar-track {
+        background: transparent;
+      }
 
-    :where(table, pre):not(:where(.not-prose, .not-prose *)):hover::-webkit-scrollbar-thumb {
-      background-color: color-mix(
-        in oklch,
-        var(--prose-scroll-accent) var(--prose-scroll-thumb-hover-alpha),
-        transparent
-      );
+      table::-webkit-scrollbar-thumb,
+      pre::-webkit-scrollbar-thumb {
+        background-color: var(--prose-scroll-thumb-color);
+        border-radius: 9999px;
+      }
+
+      table:hover::-webkit-scrollbar-thumb,
+      pre:hover::-webkit-scrollbar-thumb {
+        background-color: var(--prose-scroll-thumb-hover-color);
+      }
     }
 
     :where(table):not(:where(.not-prose, .not-prose *)) {
