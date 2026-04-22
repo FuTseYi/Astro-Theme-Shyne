@@ -123,7 +123,7 @@
     :where(table, pre):not(:where(.not-prose, .not-prose *)) {
       -webkit-overflow-scrolling: touch;
       overscroll-behavior-x: contain;
-      touch-action: pan-x;
+      touch-action: pan-x pan-y;
       scrollbar-gutter: stable;
     }
 
