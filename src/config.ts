@@ -9,7 +9,7 @@ export const SITE: Site = {
   title: "Shyne",
   description:
     "A minimalist personal blog and portfolio built with Astro, featuring a unique Polaroid-style photo gallery timeline.",
-  href: "https://shyne.xieyi.org",
+  href: "https://shyne.vercel.app/",
   author: "FuTseYi",
   footer: {
     items: [

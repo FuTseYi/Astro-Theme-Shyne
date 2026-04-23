@@ -1,4 +1,4 @@
-import { SITE } from '@/config'
+import { FAVICON, SITE } from '@/config'
 import rss from '@astrojs/rss'
 import type { APIContext } from 'astro'
 import { getAllPosts } from '@/lib/data-utils'
@@ -14,16 +14,27 @@ function stripInvalidXmlChars(str: string): string {
   )
 }
 
+function toAbsoluteUrl(pathOrUrl: string, baseUrl: string): string {
+  try {
+    return new URL(pathOrUrl, baseUrl).toString()
+  } catch {
+    return pathOrUrl
+  }
+}
+
 // Main
 export async function GET(_context: APIContext) {
   try {
     const posts = await getAllPosts()
     const siteUrl = SITE.href
+    const iconUrl = toAbsoluteUrl(FAVICON.ico, siteUrl)
+    const appleTouchIconUrl = toAbsoluteUrl(FAVICON.appleTouchIcon, siteUrl)
 
     return rss({
       title: SITE.title,
       description: SITE.description,
       site: siteUrl,
+      stylesheet: '/rss/rss-styles.xsl',
       items: posts.map((post) => {
         const content = typeof post.body === 'string' ? post.body : String(post.body || '')
         const cleanedContent = stripInvalidXmlChars(content)
@@ -38,7 +49,7 @@ export async function GET(_context: APIContext) {
           }),
         }
       }),
-      customData: `<language>${SITE.locale ?? 'en'}</language>`,
+      customData: `<language>${SITE.locale ?? 'en'}</language><image><url>${iconUrl}</url><title>${SITE.title}</title><link>${siteUrl}</link></image><appleTouchIcon>${appleTouchIconUrl}</appleTouchIcon>`,
     })
   } catch (error) {
     console.error('Error generating RSS feed:', error)
