@@ -35,6 +35,7 @@ const PolaroidCard: React.FC<Props> = ({
 }) => {
   const baseZIndex = totalPhotos - index
   const moveDistance = index === 0 ? 0 : 25
+  const thumbnailFrameClass = isThumbnail ? 'aspect-square' : 'aspect-[4/5]'
 
   const imgSrc = photo.src
 
@@ -85,12 +86,12 @@ const PolaroidCard: React.FC<Props> = ({
             }
       }
     >
-      <div className="w-full overflow-hidden bg-gray-100">
+      <div className={cn('w-full overflow-hidden bg-gray-100', thumbnailFrameClass)}>
         <img
           src={imgSrc}
           width={photo.width}
           height={photo.height}
-          className="block h-auto w-full object-contain"
+          className="block h-full w-full object-cover"
           loading="lazy"
           decoding="async"
           alt={photo.alt}
