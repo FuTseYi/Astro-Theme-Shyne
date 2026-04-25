@@ -37,7 +37,7 @@ const PolaroidCard: React.FC<Props> = ({
   const moveDistance = index === 0 ? 0 : 25
   const thumbnailFrameClass = isThumbnail ? 'aspect-square' : 'aspect-[4/5]'
 
-  const imgSrc = photo.src
+  const imgSrc = photo.thumbnailSrc || photo.src
 
   return (
     <motion.div
@@ -92,8 +92,9 @@ const PolaroidCard: React.FC<Props> = ({
           width={photo.width}
           height={photo.height}
           className="block h-full w-full object-cover"
-          loading="lazy"
+          loading={index < 3 ? 'eager' : 'lazy'}
           decoding="async"
+          fetchPriority={index < 3 ? 'low' : 'auto'}
           alt={photo.alt}
         />
       </div>
@@ -101,5 +102,5 @@ const PolaroidCard: React.FC<Props> = ({
   )
 }
 
-export default PolaroidCard
+export default React.memo(PolaroidCard)
 

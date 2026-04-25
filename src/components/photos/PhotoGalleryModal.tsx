@@ -34,6 +34,7 @@ const CONSTANTS = {
   CLICK_DEBOUNCE: 200, // ms
   ANIMATION_DELAY: 30, // ms
   TOUCH_CLEANUP_DELAY: 350, // ms
+  RENDER_RADIUS: 2,
 } as const
 
 const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, initialIndex = 0 }) => {
@@ -862,6 +863,7 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, in
                   {photos.map((photo, index) => {
                     const imgSrc = photo.src
                     const isActive = index === currentIndex
+                    const shouldRenderImage = Math.abs(index - currentIndex) <= CONSTANTS.RENDER_RADIUS
 
                     return (
                       <div
@@ -872,45 +874,56 @@ const PhotoGalleryModal: React.FC<Props> = ({ photos, title, isOpen, onClose, in
                         className="flex shrink-0 items-center justify-center overflow-hidden"
                         style={{ width: containerWidth }}
                       >
-                        <div
-                          data-image-index={index}
-                          className="flex items-center justify-center"
-                          onDoubleClick={isActive ? handleImageDoubleClick : undefined}
-                          onMouseDown={isActive ? handleImageMouseDown : undefined}
-                          onMouseMove={isActive ? handleImageMouseMove : undefined}
-                          onMouseUp={isActive ? handleImageMouseUpOrLeave : undefined}
-                          onMouseLeave={isActive ? handleImageMouseUpOrLeave : undefined}
-                          style={{
-                            cursor:
-                              isActive && zoom > CONSTANTS.MIN_ZOOM
-                                ? isPanning
-                                  ? 'grabbing'
-                                  : 'grab'
-                                : 'default',
-                            touchAction: isActive && zoom > CONSTANTS.MIN_ZOOM ? 'none' : 'pan-x',
-                          }}
-                        >
-                          <img
-                            draggable={false}
-                            src={imgSrc}
-                            alt={photo.alt}
-                            width={photo.width}
-                            height={photo.height}
-                            className="block max-h-[80vh] max-w-full select-none object-contain"
-                            style={{
-                              transform:
-                                isActive && zoom > CONSTANTS.MIN_ZOOM
-                                  ? `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoom})`
-                                  : `translate3d(0px, 0px, 0) scale(${CONSTANTS.MIN_ZOOM})`,
-                              transition: isPanning ? 'none' : 'transform 0.18s ease-out',
-                            }}
-                            onLoad={() => {
-                              if (index === currentIndex) {
-                                measureCurrentSlideHeight()
-                              }
-                            }}
+                        {!shouldRenderImage ? (
+                          <div
+                            aria-hidden="true"
+                            className="w-full shrink-0"
+                            style={{ height: currentHeight }}
                           />
-                        </div>
+                        ) : (
+                          <div
+                            data-image-index={index}
+                            className="flex items-center justify-center"
+                            onDoubleClick={isActive ? handleImageDoubleClick : undefined}
+                            onMouseDown={isActive ? handleImageMouseDown : undefined}
+                            onMouseMove={isActive ? handleImageMouseMove : undefined}
+                            onMouseUp={isActive ? handleImageMouseUpOrLeave : undefined}
+                            onMouseLeave={isActive ? handleImageMouseUpOrLeave : undefined}
+                            style={{
+                              cursor:
+                                isActive && zoom > CONSTANTS.MIN_ZOOM
+                                  ? isPanning
+                                    ? 'grabbing'
+                                    : 'grab'
+                                  : 'default',
+                              touchAction: isActive && zoom > CONSTANTS.MIN_ZOOM ? 'none' : 'pan-x',
+                            }}
+                          >
+                            <img
+                              draggable={false}
+                              src={imgSrc}
+                              alt={photo.alt}
+                              width={photo.width}
+                              height={photo.height}
+                              loading={isActive ? 'eager' : 'lazy'}
+                              decoding="async"
+                              fetchPriority={isActive ? 'high' : 'low'}
+                              className="block max-h-[80vh] max-w-full select-none object-contain"
+                              style={{
+                                transform:
+                                  isActive && zoom > CONSTANTS.MIN_ZOOM
+                                    ? `translate3d(${offset.x}px, ${offset.y}px, 0) scale(${zoom})`
+                                    : `translate3d(0px, 0px, 0) scale(${CONSTANTS.MIN_ZOOM})`,
+                                transition: isPanning ? 'none' : 'transform 0.18s ease-out',
+                              }}
+                              onLoad={() => {
+                                if (index === currentIndex) {
+                                  measureCurrentSlideHeight()
+                                }
+                              }}
+                            />
+                          </div>
+                        )}
                       </div>
                     )
                   })}

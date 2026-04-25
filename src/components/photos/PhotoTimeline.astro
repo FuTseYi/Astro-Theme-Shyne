@@ -41,7 +41,7 @@ const getDateRange = (start?: string, end?: string): string => {
 <div class={cn(className)}>
   {
     photoData.map((timeline, index) => (
-      <div class="timeline-item group/item relative">
+      <div class="timeline-item group/item relative [contain-intrinsic-size:220px] [content-visibility:auto]">
         <div class="flex gap-x-3">
           <div class="relative after:absolute after:start-3.5 after:top-7 after:bottom-0 after:w-px after:-translate-x-[0.5px] after:bg-zinc-200/50 last:after:hidden dark:after:bg-zinc-700/50">
             <div class="relative z-10 flex size-7 items-center justify-center">

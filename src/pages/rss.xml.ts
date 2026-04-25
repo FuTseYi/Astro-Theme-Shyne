@@ -56,4 +56,3 @@ export async function GET(_context: APIContext) {
     return new Response('Error generating RSS feed', { status: 500 })
   }
 }
-

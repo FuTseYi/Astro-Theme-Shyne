@@ -26,7 +26,15 @@ const { icon, index } = Astro.props
   {icon.type === 'number' && <span class="text-sm font-bold text-primary">{icon.value || index + 1}</span>}
 
   {icon.type === 'image' && (
-    <img src={icon.value} class="h-6 w-6 rounded-full border border-gray-200 object-cover" alt="" />
+    <img
+      src={icon.value}
+      class="h-6 w-6 rounded-full border border-gray-200 object-cover"
+      alt=""
+      loading="lazy"
+      decoding="async"
+      width="24"
+      height="24"
+    />
   )}
 </div>
 
