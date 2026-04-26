@@ -163,26 +163,30 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
       /> -->
     </section>
 
-    {
-      tocSections.length > 0 && (
-        <TOCSidebar sections={tocSections} currentPostId={currentPostId} />
-      )
-    }
+    <section
+      class="col-span-3 grid grid-cols-[minmax(0px,1fr)_min(calc(var(--breakpoint-md)-2rem),100%)_minmax(0px,1fr)] items-start"
+    >
+      {
+        tocSections.length > 0 && (
+          <TOCSidebar sections={tocSections} currentPostId={currentPostId} />
+        )
+      }
 
-    <article class="prose custom-md col-start-2 max-w-none">
-      <Content />
-    </article>
+      <article class="prose custom-md col-start-2 max-w-none">
+        <Content />
+      </article>
 
-    {
-      (hasChildPosts || isCurrentSubpost) && (
-        <SubpostsSidebar
-          parentId={
-            isCurrentSubpost ? getParentId(currentPostId) : currentPostId
-          }
-          className="w-64"
-        />
-      )
-    }
+      {
+        (hasChildPosts || isCurrentSubpost) && (
+          <SubpostsSidebar
+            parentId={
+              isCurrentSubpost ? getParentId(currentPostId) : currentPostId
+            }
+            className="w-64"
+          />
+        )
+      }
+    </section>
 
     <PostNavigation
       newerPost={navigation.newer}

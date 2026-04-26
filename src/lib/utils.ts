@@ -27,16 +27,20 @@ export function readingTime(wordCount: number): string {
   return `${readingTimeMinutes} min read`
 }
 
-export function getHeadingMargin(depth: number): string {
-  const margins: Record<number, string> = {
-    1: 'ml-0 text-sm font-semibold',
-    2: 'ml-0 text-sm font-medium',
-    3: 'ml-3 text-[13px]',
-    4: 'ml-6 text-[13px]',
-    5: 'ml-9 text-xs',
-    6: 'ml-12 text-xs',
+export function getTOCLevelClass(depth: number): string {
+  const levels: Record<number, string> = {
+    1: 'ml-0 text-sm font-semibold text-foreground/75',
+    2: 'ml-4 text-[13px] font-medium text-foreground/62',
+    3: 'ml-8 text-[13px] text-foreground/52',
+    4: 'ml-12 text-xs text-foreground/45',
+    5: 'ml-16 text-xs text-foreground/40',
+    6: 'ml-20 text-xs text-foreground/35',
   }
-  return margins[depth] || ''
+  return levels[depth] || levels[6]
+}
+
+export function getHeadingMargin(depth: number): string {
+  return getTOCLevelClass(depth)
 }
 
 // NOTE: this function is only used in ts files, in astro files, you can use Astro.url.origin directly. ref @PageHead.astro, @PostHead.astro

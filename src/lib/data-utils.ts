@@ -359,6 +359,7 @@ export type TOCHeading = {
   slug: string
   text: string
   depth: number
+  displayDepth: number
   isSubpostTitle?: boolean
 }
 
@@ -367,6 +368,19 @@ export type TOCSection = {
   title: string
   headings: TOCHeading[]
   subpostId?: string
+}
+
+function normalizeTOCHeadings(
+  headings: { slug: string; text: string; depth: number }[],
+): TOCHeading[] {
+  const minDepth = Math.min(...headings.map((heading) => heading.depth))
+
+  return headings.map((heading) => ({
+    slug: heading.slug,
+    text: heading.text,
+    depth: heading.depth,
+    displayDepth: Math.min(Math.max(heading.depth - minDepth + 1, 1), 6),
+  }))
 }
 
 export async function getTOCSections(postId: string): Promise<TOCSection[]> {
@@ -385,11 +399,7 @@ export async function getTOCSections(postId: string): Promise<TOCSection[]> {
     sections.push({
       type: 'parent',
       title: 'Overview',
-      headings: parentHeadings.map((heading) => ({
-        slug: heading.slug,
-        text: heading.text,
-        depth: heading.depth,
-      })),
+      headings: normalizeTOCHeadings(parentHeadings),
     })
   }
 
@@ -400,12 +410,12 @@ export async function getTOCSections(postId: string): Promise<TOCSection[]> {
       sections.push({
         type: 'subpost',
         title: subpost.data.title ?? '',
-        headings: subpostHeadings.map((heading, index) => ({
-          slug: heading.slug,
-          text: heading.text,
-          depth: heading.depth,
-          isSubpostTitle: index === 0,
-        })),
+        headings: normalizeTOCHeadings(subpostHeadings).map(
+          (heading, index) => ({
+            ...heading,
+            isSubpostTitle: index === 0,
+          }),
+        ),
         subpostId: subpost.id,
       })
     }
