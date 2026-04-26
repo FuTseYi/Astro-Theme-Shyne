@@ -99,9 +99,30 @@ const { headings } = Astro.props
   import { getArticleReadingProgress } from '@/lib/reading-progress'
 
   const INITIAL_OVERVIEW_TEXT = 'Overview'
-  const HEADER_OFFSET = 102 + 36
   const PROGRESS_CIRCLE_RADIUS = 10
   const PROGRESS_CIRCLE_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_CIRCLE_RADIUS
+
+  const getHeaderOffset = () => {
+    const header = document.getElementById('main-header')
+    return header ? header.getBoundingClientRect().height : 0
+  }
+
+  const getElementPageTop = (element: HTMLElement) =>
+    window.scrollY + element.getBoundingClientRect().top
+
+  const isBeforeArticleContent = () => {
+    const article = document.querySelector<HTMLElement>('article.prose')
+    if (!article) return window.scrollY <= 0
+
+    const firstHeading = article.querySelector<HTMLElement>(
+      'h1, h2, h3, h4, h5, h6',
+    )
+    const contentStart = firstHeading
+      ? getElementPageTop(firstHeading)
+      : getElementPageTop(article)
+
+    return window.scrollY + getHeaderOffset() + 8 < contentStart
+  }
 
   class MobileTOCState {
     progressCircle: HTMLElement | null = null
@@ -162,8 +183,7 @@ const { headings } = Astro.props
     const finalBehavior =
       prefersReducedMotion || behavior !== 'smooth' ? 'auto' : 'smooth'
 
-    const targetTop =
-      target.getBoundingClientRect().top + window.scrollY - HEADER_OFFSET
+    const targetTop = getElementPageTop(target) - getHeaderOffset()
 
     window.scrollTo({
       top: Math.max(targetTop, 0),
@@ -191,20 +211,24 @@ const { headings } = Astro.props
 
       state.regions = state.headings.map((heading, index) => {
         const nextHeading = state.headings[index + 1]
+        const start = getElementPageTop(heading)
         return {
           id: heading.id,
-          start: heading.offsetTop,
-          end: nextHeading ? nextHeading.offsetTop : document.body.scrollHeight,
+          start,
+          end: nextHeading
+            ? getElementPageTop(nextHeading)
+            : document.documentElement.scrollHeight,
         }
       })
     }
 
     static getVisibleIds(): string[] {
       if (state.headings.length === 0) return []
+      if (isBeforeArticleContent()) return []
 
-      const anchorY = window.scrollY + HEADER_OFFSET + 8
+      const anchorY = window.scrollY + getHeaderOffset() + 8
       let currentIndex = state.headings.findLastIndex(
-        (heading) => heading.offsetTop <= anchorY,
+        (heading) => getElementPageTop(heading) <= anchorY,
       )
 
       if (currentIndex < 0) currentIndex = 0
@@ -361,19 +385,25 @@ const { headings } = Astro.props
       })
 
       if (state.scrollArea) {
-        state.scrollArea.addEventListener(
-          'scroll',
-          () => TOCHeaderScrollMask.update(),
-          { passive: true },
-        )
+        const handleScrollAreaScroll = () => TOCHeaderScrollMask.update()
+        state.scrollArea.addEventListener('scroll', handleScrollAreaScroll, {
+          passive: true,
+        })
+        scrollAreaScrollCleanup = () => {
+          state.scrollArea?.removeEventListener('scroll', handleScrollAreaScroll)
+        }
       }
 
       if (state.detailsElement) {
-        state.detailsElement.addEventListener('toggle', () => {
+        const handleDetailsToggle = () => {
           if (state.detailsElement?.open) {
             setTimeout(TOCHeaderScrollMask.update, 100)
           }
-        })
+        }
+        state.detailsElement.addEventListener('toggle', handleDetailsToggle)
+        detailsToggleCleanup = () => {
+          state.detailsElement?.removeEventListener('toggle', handleDetailsToggle)
+        }
       }
     }
   }
@@ -392,6 +422,9 @@ const { headings } = Astro.props
   }
 
   let isInitialized = false
+  let scrollAreaScrollCleanup: (() => void) | null = null
+  let detailsToggleCleanup: (() => void) | null = null
+  let reinitFrameId: number | null = null
 
   class MobileTOCController {
     static handleScroll() {
@@ -422,7 +455,9 @@ const { headings } = Astro.props
     }
 
     static init() {
-      if (isInitialized) return
+      if (isInitialized) {
+        this.cleanup()
+      }
 
       state.reset()
       HeadingRegions.build()
@@ -443,11 +478,13 @@ const { headings } = Astro.props
       state.activeIds = HeadingRegions.getVisibleIds()
       MobileTOCLinks.update(state.activeIds)
       ProgressCircle.update()
+      scrollToHashWithOffset('auto')
 
       MobileTOCLinks.setupInteraction()
       window.addEventListener('scroll', this.handleScroll, { passive: true })
       window.addEventListener('resize', this.handleResize, { passive: true })
       window.addEventListener('popstate', this.handlePopState)
+      window.addEventListener('load', this.handleResize, { once: true })
     }
 
     static cleanup() {
@@ -457,6 +494,11 @@ const { headings } = Astro.props
       window.removeEventListener('scroll', ProgressCircle.update)
       window.removeEventListener('resize', this.handleResize)
       window.removeEventListener('popstate', this.handlePopState)
+      window.removeEventListener('load', this.handleResize)
+      scrollAreaScrollCleanup?.()
+      detailsToggleCleanup?.()
+      scrollAreaScrollCleanup = null
+      detailsToggleCleanup = null
 
       isInitialized = false
       state.activeIds = []
@@ -469,11 +511,27 @@ const { headings } = Astro.props
     MobileTOCController.init()
   }
 
-  window.addEventListener('scroll-area-hydrated', handleScrollAreaHydrated)
+  const reinitMobileTOC = () => {
+    if (reinitFrameId) cancelAnimationFrame(reinitFrameId)
+    reinitFrameId = requestAnimationFrame(() => {
+      reinitFrameId = null
+      MobileTOCController.init()
+      requestAnimationFrame(() => MobileTOCController.handleResize())
+    })
+  }
 
-  document.addEventListener('astro:before-swap', () =>
-    MobileTOCController.cleanup(),
-  )
+  window.addEventListener('scroll-area-hydrated', handleScrollAreaHydrated)
+  document.addEventListener('astro:page-load', reinitMobileTOC)
+  document.addEventListener('astro:after-swap', reinitMobileTOC)
+
+  document.addEventListener('astro:before-swap', () => {
+    if (reinitFrameId) {
+      cancelAnimationFrame(reinitFrameId)
+      reinitFrameId = null
+    }
+    MobileTOCController.cleanup()
+  })
+  reinitMobileTOC()
 </script>
 
 <style>

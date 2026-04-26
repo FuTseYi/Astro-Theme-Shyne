@@ -362,17 +362,21 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
   <script>
     import { getArticleReadingProgress } from '@/lib/reading-progress'
 
-    document.addEventListener('astro:page-load', () => {
+    let cleanupReadingProgress: (() => void) | null = null
+
+    const initReadingProgress = () => {
+      cleanupReadingProgress?.()
+      cleanupReadingProgress = null
+
       const root = document.getElementById('reading-progress')
       const circle = root?.querySelector(
         '.progress-ring-circle',
       ) as SVGCircleElement | null
       const text = root?.querySelector('.progress-text') as HTMLElement | null
 
-      // 文章内容：本页只有一个主要 article
       const article =
-        document.querySelector('article.prose') ||
-        document.querySelector('article')
+        document.querySelector<HTMLElement>('article.prose') ||
+        document.querySelector<HTMLElement>('article')
 
       const r = 24
       const circumference = 2 * Math.PI * r
@@ -389,9 +393,8 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
       }
 
       const update = () => {
-        const { progress, percentage, inRange } = getArticleReadingProgress(
-          article as HTMLElement,
-        )
+        const { progress, percentage, inRange } =
+          getArticleReadingProgress(article)
         setVisible(inRange)
 
         // 更新文本/标题/aria
@@ -401,7 +404,9 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
 
         // 更新圆环
         circle.style.strokeDasharray = `${circumference}`
-        circle.style.strokeDashoffset = `${circumference - progress * circumference}`
+        circle.style.strokeDashoffset = `${
+          circumference - progress * circumference
+        }`
 
         // 滚动时显示百分比，停止 1.5s 后显示箭头
         setShowMode('percent')
@@ -414,17 +419,41 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
 
       const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
-      root.addEventListener('click', scrollToTop)
-      root.addEventListener('keydown', (e) => {
+      const handleKeydown = (e: KeyboardEvent) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           scrollToTop()
         }
-      })
+      }
 
+      root.addEventListener('click', scrollToTop)
+      root.addEventListener('keydown', handleKeydown)
       window.addEventListener('scroll', update, { passive: true })
+      window.addEventListener('resize', update, { passive: true })
+      window.addEventListener('load', update, { once: true })
       update()
-    })
+      requestAnimationFrame(update)
+
+      cleanupReadingProgress = () => {
+        root.removeEventListener('click', scrollToTop)
+        root.removeEventListener('keydown', handleKeydown)
+        window.removeEventListener('scroll', update)
+        window.removeEventListener('resize', update)
+        window.removeEventListener('load', update)
+        if (scrollTimer) window.clearTimeout(scrollTimer)
+        root.classList.add('hidden')
+      }
+    }
+
+    const cleanupBeforeSwap = () => {
+      cleanupReadingProgress?.()
+      cleanupReadingProgress = null
+    }
+
+    document.addEventListener('astro:page-load', initReadingProgress)
+    document.addEventListener('astro:after-swap', initReadingProgress)
+    document.addEventListener('astro:before-swap', cleanupBeforeSwap)
+    initReadingProgress()
   </script>
 </Layout>
 
