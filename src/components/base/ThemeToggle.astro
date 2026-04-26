@@ -8,11 +8,20 @@ import { Icon } from 'astro-icon/components'
   variant="ghost"
   size="icon"
   title="Toggle theme"
-  className="text-foreground/60 hover:text-foreground -my-2 -me-2 size-8 transition-colors duration-300 hover:cursor-pointer hover:bg-transparent dark:hover:bg-transparent"
+  className="group text-foreground/65 hover:text-foreground hover:bg-muted/60 dark:hover:bg-muted/60 size-8 rounded-md transition-[background-color,color,border-radius,transform] duration-300 ease-out group-[.not-top]/site:rounded-xl hover:scale-105 hover:cursor-pointer active:scale-95"
 >
-  <Icon name="lucide:sun" class="theme-icon theme-light size-4" />
-  <Icon name="lucide:moon" class="theme-icon theme-dark size-4" />
-  <Icon name="lucide:monitor" class="theme-icon theme-auto size-4" />
+  <Icon
+    name="lucide:sun"
+    class="theme-icon theme-light size-4 transition-transform duration-300 ease-out group-hover:rotate-12"
+  />
+  <Icon
+    name="lucide:moon"
+    class="theme-icon theme-dark size-4 transition-transform duration-300 ease-out group-hover:-rotate-12"
+  />
+  <Icon
+    name="lucide:monitor"
+    class="theme-icon theme-auto size-4 transition-transform duration-300 ease-out group-hover:scale-110"
+  />
   <span class="sr-only">Toggle theme</span>
 </Button>
 
@@ -41,7 +50,7 @@ import { Icon } from 'astro-icon/components'
 
     if (animate) {
       $root.classList.add('[&_*]:transition-none')
-      getComputedStyle($root).opacity // 强制重排
+      getComputedStyle($root).opacity // force reflow
     }
 
     $root.setAttribute('data-theme', theme)
@@ -53,13 +62,11 @@ import { Icon } from 'astro-icon/components'
         $root.classList.remove('[&_*]:transition-none'),
       )
 
-    // 更新图标
     document
       .querySelectorAll('.theme-icon')
       .forEach((el) => el.classList.add('hidden'))
     document.querySelector(`.theme-${mode}`)?.classList.remove('hidden')
 
-    // 管理监听器
     listener && mediaQuery?.removeEventListener('change', listener)
     if (mode === 'auto') {
       mediaQuery = matchMedia('(prefers-color-scheme: dark)')
@@ -75,11 +82,9 @@ import { Icon } from 'astro-icon/components'
     setTheme(next)
   }
 
-  // 初始化
   setTheme($root.getAttribute('data-theme-mode') || 'auto', false)
   document.getElementById('theme-toggle')?.addEventListener('click', toggle)
 
-  // View Transitions 支持
   document.addEventListener('astro:after-swap', () => {
     setTheme(localStorage.getItem('theme-mode') || 'auto', false)
     document.getElementById('theme-toggle')?.addEventListener('click', toggle)

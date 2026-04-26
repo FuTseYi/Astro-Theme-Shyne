@@ -29,7 +29,8 @@ const { class: className } = Astro.props
     <LoadingBar />
     <header
       id="main-header"
-      class="bg-background/50 divide-foreground/10 sticky top-0 z-50 divide-y backdrop-blur-sm transition-transform duration-300 ease-in-out xl:divide-none"
+      data-show="true"
+      class="group/site sticky top-0 z-50"
     >
       <Header />
       <slot name="subposts-navigation" />
@@ -41,5 +42,440 @@ const { class: className } = Astro.props
       <slot />
     </main>
     <Footer />
+    <script>
+      class SiteHeaderController {
+        private header: HTMLElement | null = null
+        private lastScrollY = 0
+        private directionStartY = 0
+        private scrollDirection: 'up' | 'down' = 'down'
+        private isNavVisible = true
+        private preserveHiddenUntil = 0
+        private ticking = false
+        private readonly topThreshold = 24
+        private readonly minDelta = 6
+        private readonly hideDistance = 96
+        private readonly showDistance = 128
+        private readonly keepVisibleUntilScrollY = 680
+        private readonly mobileTocTopThreshold = 2
+
+        init() {
+          this.header = document.getElementById('main-header')
+          if (!this.header) return
+
+          this.lastScrollY = Math.max(window.scrollY, 0)
+          this.directionStartY = this.lastScrollY
+          this.isNavVisible = true
+          this.update()
+          window.addEventListener('scroll', this.handleScroll, {
+            passive: true,
+          })
+          window.addEventListener('resize', this.handleResize, {
+            passive: true,
+          })
+          document.addEventListener('site-header:force-show', this.forceShow)
+          document.addEventListener(
+            'click',
+            this.handlePinnedNavigationInteraction,
+            true,
+          )
+          document.addEventListener(
+            'toggle',
+            this.handlePinnedNavigationInteraction,
+            true,
+          )
+          document.addEventListener('astro:before-swap', this.cleanup)
+        }
+
+        cleanup = () => {
+          window.removeEventListener('scroll', this.handleScroll)
+          window.removeEventListener('resize', this.handleResize)
+          document.removeEventListener('site-header:force-show', this.forceShow)
+          document.removeEventListener(
+            'click',
+            this.handlePinnedNavigationInteraction,
+            true,
+          )
+          document.removeEventListener(
+            'toggle',
+            this.handlePinnedNavigationInteraction,
+            true,
+          )
+          document.removeEventListener('astro:before-swap', this.cleanup)
+          this.ticking = false
+          this.header = null
+        }
+
+        private handleResize = () => this.update()
+
+        private handleScroll = () => {
+          if (this.ticking) return
+
+          this.ticking = true
+          requestAnimationFrame(() => {
+            this.update()
+            this.ticking = false
+          })
+        }
+
+        private forceShow = () => {
+          if (!this.header) return
+
+          const currentScrollY = Math.max(window.scrollY, 0)
+          this.isNavVisible = true
+          this.directionStartY = currentScrollY
+          this.scrollDirection = 'down'
+          this.lastScrollY = currentScrollY
+          this.header.classList.remove('nav-hidden')
+          this.header.dataset.show = 'true'
+        }
+
+        private handlePinnedNavigationInteraction = (event: Event) => {
+          if (!this.header || this.isNavVisible) return
+
+          const target = event.target as Element | null
+          const pinnedNavigation = target?.closest(
+            '#mobile-toc-container, #mobile-subposts-container',
+          )
+          if (!pinnedNavigation) return
+
+          const currentScrollY = Math.max(window.scrollY, 0)
+          this.preserveHiddenUntil = performance.now() + 520
+          this.lastScrollY = currentScrollY
+          this.directionStartY = currentScrollY
+          this.scrollDirection = 'down'
+          this.header.classList.add('nav-hidden')
+          this.header.dataset.show = 'false'
+        }
+
+        private hasPinnedMobileNavigation() {
+          const isMobile = window.matchMedia('(max-width: 1279px)').matches
+          if (!isMobile) return false
+
+          return Boolean(
+            document.getElementById('mobile-toc-container') ||
+            document.getElementById('mobile-subposts-container'),
+          )
+        }
+
+        private update() {
+          if (!this.header) return
+
+          const currentScrollY = Math.max(window.scrollY, 0)
+          const delta = currentScrollY - this.lastScrollY
+          const isExpanded = this.header.classList.contains('expanded')
+          const hasPinnedMobileNavigation = this.hasPinnedMobileNavigation()
+          const shouldKeepVisible =
+            currentScrollY < this.keepVisibleUntilScrollY
+          const shouldPreserveHidden =
+            performance.now() < this.preserveHiddenUntil &&
+            hasPinnedMobileNavigation &&
+            !shouldKeepVisible &&
+            !isExpanded
+          const isAtTop =
+            currentScrollY <=
+            (hasPinnedMobileNavigation
+              ? this.mobileTocTopThreshold
+              : this.topThreshold)
+
+          if (Math.abs(delta) >= this.minDelta) {
+            const nextDirection = delta > 0 ? 'down' : 'up'
+            if (nextDirection !== this.scrollDirection) {
+              this.scrollDirection = nextDirection
+              this.directionStartY = this.lastScrollY
+            }
+          }
+
+          if (isAtTop || isExpanded || shouldKeepVisible) {
+            this.isNavVisible = true
+            this.directionStartY = currentScrollY
+          } else if (shouldPreserveHidden) {
+            this.isNavVisible = false
+            this.directionStartY = currentScrollY
+          } else {
+            const distanceFromDirectionStart = Math.abs(
+              currentScrollY - this.directionStartY,
+            )
+
+            if (
+              this.scrollDirection === 'down' &&
+              distanceFromDirectionStart >= this.hideDistance
+            ) {
+              this.isNavVisible = false
+            } else if (
+              this.scrollDirection === 'up' &&
+              distanceFromDirectionStart >= this.showDistance
+            ) {
+              this.isNavVisible = true
+            }
+          }
+
+          this.header.classList.toggle('not-top', currentScrollY > 20)
+          this.header.classList.toggle('nav-hidden', !this.isNavVisible)
+          this.header.dataset.show = String(this.isNavVisible)
+          this.lastScrollY = currentScrollY
+        }
+      }
+
+      let siteHeaderController: SiteHeaderController | null = null
+
+      const initSiteHeader = () => {
+        siteHeaderController?.cleanup()
+        siteHeaderController = new SiteHeaderController()
+        siteHeaderController.init()
+      }
+
+      document.addEventListener('astro:page-load', initSiteHeader)
+      document.addEventListener('astro:after-swap', initSiteHeader)
+      initSiteHeader()
+    </script>
+    <style is:global>
+      #main-header header-nav-component {
+        opacity: 1;
+        transform: translateY(0);
+        transition:
+          transform 0.3s ease-out,
+          opacity 0.2s ease-out;
+        will-change: transform;
+      }
+
+      #main-header header-nav-component > div {
+        margin-inline: 0;
+        transform: translateZ(0);
+        transition:
+          margin-inline 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+          padding 0.3s ease-out,
+          background-color 0.18s ease-out,
+          border-color 0.18s ease-out,
+          box-shadow 0.28s ease-out;
+      }
+
+      #main-header.not-top header-nav-component > div {
+        border-color: color-mix(in oklch, var(--border) 92%, transparent);
+        background-color: color-mix(
+          in oklch,
+          var(--background) 98%,
+          transparent
+        );
+        box-shadow:
+          0 1px 0 color-mix(in oklch, white 70%, transparent) inset,
+          0 0 0 1px color-mix(in oklch, var(--border) 38%, transparent),
+          0 14px 34px rgba(15, 23, 42, 0.13);
+      }
+
+      @media (min-width: 768px) {
+        #main-header.not-top header-nav-component > div {
+          margin-inline: clamp(0rem, calc((100% - 48rem) / 2), 3rem);
+        }
+      }
+
+      #main-header.not-top header-nav-component > div::after {
+        position: absolute;
+        right: 0.875rem;
+        bottom: 0;
+        left: 0.875rem;
+        height: 1px;
+        pointer-events: none;
+        content: '';
+        background: linear-gradient(
+          90deg,
+          transparent,
+          color-mix(in oklch, var(--border) 88%, transparent),
+          transparent
+        );
+      }
+
+      [data-theme='dark'] #main-header.not-top header-nav-component > div {
+        border-color: color-mix(in oklch, var(--border) 88%, transparent);
+        background-color: color-mix(in oklch, var(--muted) 96%, black 4%);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.06) inset,
+          0 0 0 1px rgba(255, 255, 255, 0.05),
+          0 16px 38px rgba(0, 0, 0, 0.38);
+      }
+
+      [data-theme='dark']
+        #main-header.not-top
+        header-nav-component
+        > div::after {
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.16),
+          transparent
+        );
+      }
+
+      #main-header[data-show='false']:not(.expanded) header-nav-component,
+      #main-header.nav-hidden:not(.expanded) header-nav-component {
+        transform: translateY(calc(-100% - 0.75rem));
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      #main-header {
+        pointer-events: none;
+      }
+
+      #main-header header-nav-component,
+      #main-header #mobile-subposts-container,
+      #main-header #mobile-toc-container {
+        pointer-events: auto;
+      }
+
+      #main-header #mobile-subposts-container,
+      #main-header #mobile-toc-container {
+        --site-nav-offset: 3rem;
+        margin-inline: auto;
+        max-width: 48rem;
+        padding-inline: 1rem;
+        padding-top: 0;
+        padding-bottom: 0.5rem;
+        isolation: isolate;
+        background: transparent;
+        transform: translateY(0);
+        transition: transform 0.3s ease-out;
+        will-change: transform;
+      }
+
+      #main-header[data-show='false']:not(.expanded) #mobile-subposts-container,
+      #main-header[data-show='false']:not(.expanded) #mobile-toc-container,
+      #main-header.nav-hidden:not(.expanded) #mobile-subposts-container,
+      #main-header.nav-hidden:not(.expanded) #mobile-toc-container {
+        transform: translateY(calc(var(--site-nav-offset) * -1));
+      }
+
+      #main-header #mobile-subposts-container > details,
+      #main-header #mobile-toc-container > details {
+        overflow: hidden;
+        border: 1px solid color-mix(in oklch, var(--border) 78%, transparent);
+        border-radius: 1rem;
+        background-color: color-mix(
+          in oklch,
+          var(--background) 92%,
+          transparent
+        );
+        box-shadow:
+          0 1px 0 color-mix(in oklch, white 72%, transparent) inset,
+          0 10px 24px rgba(15, 23, 42, 0.08);
+        -webkit-backdrop-filter: blur(18px) saturate(1.35);
+        backdrop-filter: blur(18px) saturate(1.35);
+      }
+
+      #main-header #mobile-subposts-container > details > summary,
+      #main-header #mobile-toc-container > details > summary,
+      #main-header #mobile-subposts-container [data-subposts-header-scroll],
+      #main-header #mobile-toc-container [data-toc-header-scroll],
+      #main-header #mobile-subposts-container [data-radix-scroll-area-viewport],
+      #main-header #mobile-toc-container [data-radix-scroll-area-viewport] {
+        background-color: transparent;
+      }
+
+      #main-header #mobile-subposts-container summary,
+      #main-header #mobile-toc-container summary {
+        min-height: 2.5rem;
+      }
+
+      #main-header #mobile-subposts-container summary > div,
+      #main-header #mobile-toc-container summary > div {
+        padding-block: 0.625rem;
+        padding-inline: 0.75rem;
+      }
+
+      #main-header
+        #mobile-subposts-container
+        [data-radix-scroll-area-viewport]
+        ul,
+      #main-header #mobile-toc-container [data-radix-scroll-area-viewport] ul {
+        padding-inline: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+
+      [data-theme='dark'] #main-header #mobile-subposts-container > details,
+      [data-theme='dark'] #main-header #mobile-toc-container > details {
+        background-color: color-mix(in oklch, var(--muted) 92%, transparent);
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.06) inset,
+          0 10px 24px rgba(0, 0, 0, 0.22);
+      }
+
+      #main-header #mobile-subposts-container > details[open],
+      #main-header #mobile-toc-container > details[open] {
+        background-color: var(--background);
+      }
+
+      #main-header #mobile-subposts-container > details[open] > summary,
+      #main-header #mobile-toc-container > details[open] > summary,
+      #main-header
+        #mobile-subposts-container
+        > details[open]
+        [data-subposts-header-scroll],
+      #main-header
+        #mobile-toc-container
+        > details[open]
+        [data-toc-header-scroll],
+      #main-header
+        #mobile-subposts-container
+        > details[open]
+        [data-radix-scroll-area-viewport],
+      #main-header
+        #mobile-toc-container
+        > details[open]
+        [data-radix-scroll-area-viewport],
+      #main-header #mobile-subposts-container > details[open] ul,
+      #main-header #mobile-toc-container > details[open] ul {
+        background-color: var(--background);
+      }
+
+      [data-theme='dark']
+        #main-header
+        #mobile-subposts-container
+        > details[open],
+      [data-theme='dark'] #main-header #mobile-toc-container > details[open] {
+        background-color: var(--muted);
+      }
+
+      [data-theme='dark']
+        #main-header
+        #mobile-subposts-container
+        > details[open]
+        > summary,
+      [data-theme='dark']
+        #main-header
+        #mobile-toc-container
+        > details[open]
+        > summary,
+      [data-theme='dark']
+        #main-header
+        #mobile-subposts-container
+        > details[open]
+        [data-subposts-header-scroll],
+      [data-theme='dark']
+        #main-header
+        #mobile-toc-container
+        > details[open]
+        [data-toc-header-scroll],
+      [data-theme='dark']
+        #main-header
+        #mobile-subposts-container
+        > details[open]
+        [data-radix-scroll-area-viewport],
+      [data-theme='dark']
+        #main-header
+        #mobile-toc-container
+        > details[open]
+        [data-radix-scroll-area-viewport],
+      [data-theme='dark']
+        #main-header
+        #mobile-subposts-container
+        > details[open]
+        ul,
+      [data-theme='dark']
+        #main-header
+        #mobile-toc-container
+        > details[open]
+        ul {
+        background-color: var(--muted);
+      }
+    </style>
   </body>
 </html>
