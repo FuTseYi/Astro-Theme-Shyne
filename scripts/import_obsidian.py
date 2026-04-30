@@ -40,15 +40,33 @@ Update Logic (IMPORT_MODE="update"):
     - Source newer than target → Re-import (update)
     - Source older or same → Skip (unchanged)
     - Target doesn't exist → Import (new)
+
+Round-Trip Workflow (when Obsidian source was deleted but blog still exists):
+    1. python scripts/export_to_obsidian.py   # Export blog back to Obsidian vault
+    2. Edit in Obsidian
+    3. python scripts/import_obsidian.py       # Re-import to blog
 """
 
 import os
 import re
 import shutil
+import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Optional, List, Dict, Tuple
 from urllib.parse import unquote
+
+# Ensure UTF-8 output on all platforms (especially Windows with GBK locale)
+if hasattr(sys.stdout, 'reconfigure'):
+    try:
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
+if hasattr(sys.stderr, 'reconfigure'):
+    try:
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+    except Exception:
+        pass
 
 
 # ============================================================================
@@ -76,35 +94,43 @@ class Colors:
 
 
 class Logger:
-    def __init__(self, name: str = ''):
-        self.name = name
+    verbose_enabled = False
+
+    @classmethod
+    def set_verbose(cls, enabled: bool):
+        cls.verbose_enabled = enabled
 
     def info(self, msg: str):
-        print(f"{Colors.CYAN}ℹ{Colors.RESET} {msg}")
+        print(f"{Colors.CYAN}ℹ {Colors.RESET}{msg}")
 
     def success(self, msg: str):
-        print(f"{Colors.BRIGHT_GREEN}✓{Colors.RESET} {msg}")
+        print(f"{Colors.BRIGHT_GREEN}✓ {Colors.RESET}{msg}")
 
     def warn(self, msg: str):
-        print(f"{Colors.YELLOW}⚠{Colors.RESET} {msg}")
+        print(f"{Colors.YELLOW}⚠ {Colors.RESET}{msg}")
 
     def error(self, msg: str):
-        print(f"{Colors.RED}✗{Colors.RESET} {msg}")
-    
+        print(f"{Colors.RED}✗ {Colors.RESET}{msg}")
+
+    def verbose(self, msg: str):
+        """Only printed when VERBOSE=true"""
+        if self.verbose_enabled:
+            print(f"{Colors.DIM}    {msg}{Colors.RESET}")
+
     def step(self, msg: str):
         """Step indicator for major operations"""
-        print(f"{Colors.BLUE}▶{Colors.RESET} {msg}")
-    
-    def header(self, msg: str):
-        """Header for sections"""
         print(f"\n{Colors.BOLD}{Colors.BRIGHT_CYAN}{msg}{Colors.RESET}")
-    
+
+    def header(self, msg: str):
+        """Header for sections (less intrusive)"""
+        print(f"\n{Colors.BOLD}{Colors.BRIGHT_WHITE}{msg}{Colors.RESET}")
+
     def dim(self, msg: str):
         """Dimmed text for secondary info"""
-        print(f"{Colors.DIM}{msg}{Colors.RESET}")
+        print(f"{Colors.DIM}  {msg}{Colors.RESET}")
 
 
-log = Logger('obsidian-importer')
+log = Logger()
 
 
 # ============================================================================
@@ -293,43 +319,34 @@ def to_safe_folder_name(name: str) -> str:
 
 
 def normalize_image_name(image_name: str) -> str:
-    """Normalize image filename: lowercase basename, replace spaces with hyphens"""
+    """Normalize image filename: fully lowercase, replace spaces with hyphens"""
     path = Path(image_name)
-    normalized = path.stem.lower().replace(' ', '-')
-    return f"{normalized}{path.suffix}"
+    stem = path.stem.lower().replace(' ', '-')
+    ext = path.suffix.lower()
+    return f"{stem}{ext}"
 
 
 def should_import_file(source_file: Path, target_file: Path, mode: str) -> Tuple[bool, str]:
     """
     Determine if a file should be imported based on import mode.
-    
-    Args:
-        source_file: Source markdown file path
-        target_file: Target output file path
-        mode: Import mode - 'update', 'force', or 'skip'
-    
-    Returns:
-        (should_import: bool, reason: str)
-        reason: 'new', 'updated', 'forced', 'exists', 'skipped'
+
+    update mode uses file modification time (mtime). This is the correct
+    approach because import always transforms content (frontmatter, image
+    syntax, date formatting), so source and target will never be byte-identical.
+    mtime reliably answers: "was the source edited since last import?"
     """
     if not target_file.exists():
         return True, 'new'
-    
-    # Force mode: always import
+
     if mode == 'force':
         return True, 'forced'
-    
-    # Skip mode: never overwrite existing
+
     if mode == 'skip':
         return False, 'skipped'
-    
-    # Update mode (default): check modification time
-    source_mtime = source_file.stat().st_mtime
-    target_mtime = target_file.stat().st_mtime
-    
-    if source_mtime > target_mtime:
+
+    if source_file.stat().st_mtime > target_file.stat().st_mtime:
         return True, 'updated'
-    
+
     return False, 'exists'
 
 
@@ -415,8 +432,9 @@ def check_skip_reason(fm: Dict, filename: str):
     can_skip = fm.get('can_skip')
     if can_skip is True or (isinstance(can_skip, str) and can_skip.lower() == 'true'):
         raise SkipFileError(f"[{filename}] can_skip property is set to true")
-    
-    is_draft = fm.get('is_draft')
+
+    # Support both 'draft' (Astro convention) and 'is_draft' (Obsidian convention)
+    is_draft = fm.get('draft') or fm.get('is_draft')
     if is_draft is True or (isinstance(is_draft, str) and is_draft.lower() == 'true'):
         raise SkipFileError(f"[{filename}] post is marked as draft")
 
@@ -446,9 +464,19 @@ def parse_obsidian_frontmatter(fm: Dict, filename: str) -> Dict:
     fm['tags'] = normalize_obsidian_array(fm.get('tags', []))
     if isinstance(fm['tags'], list):
         fm['tags'] = [
-            tag[1:] if isinstance(tag, str) and tag.startswith('#') else tag 
+            tag[1:] if isinstance(tag, str) and tag.startswith('#') else tag
             for tag in fm['tags']
         ]
+
+    # DRAFT: normalize is_draft → draft (Obsidian convention → Astro convention)
+    if 'is_draft' in fm and 'draft' not in fm:
+        fm['draft'] = fm.pop('is_draft')
+    elif 'is_draft' in fm:
+        fm.pop('is_draft')  # both exist, keep draft
+
+    # DESCRIPTION: collapse multi-line Obsidian descriptions for SEO meta
+    if fm.get('description') and isinstance(fm.get('description'), str):
+        fm['description'] = re.sub(r'\s+', ' ', fm['description']).strip()
 
     return fm
 
@@ -529,7 +557,8 @@ def parse_markdown_paren_content(content: str) -> Tuple[str, Optional[str], Opti
 def resolve_source_image_path(source_dir: Path, referenced_path: str, filename: str) -> Tuple[Path, str]:
     """
     Try resolving a referenced image to a real file in source_dir.
-    Returns: (resolved_path, display_name)
+    Uses case-insensitive fallback for cross-platform compatibility.
+    Returns: (resolved_path, actual_filename_from_disk)
     Raises: ImageNotFoundError if not found
     """
     if not referenced_path:
@@ -548,20 +577,29 @@ def resolve_source_image_path(source_dir: Path, referenced_path: str, filename: 
 
     # Prevent path traversal
     normalized = Path(ref).as_posix()
-    tries = []
+    paths_to_try = []
 
     if not normalized.startswith('..'):
-        tries.append((source_dir / ref, ref))
+        paths_to_try.append(source_dir / ref)
 
     base = Path(ref).name
     if base and base != ref:
-        tries.append((source_dir / base, base))
+        paths_to_try.append(source_dir / base)
 
-    for path, display in tries:
+    # Phase 1: exact match
+    for path in paths_to_try:
         if path.exists() and path.is_file():
-            return path, display
+            return path, path.name
 
-    # Not found - raise error
+    # Phase 2: case-insensitive fallback (critical for Linux/macOS)
+    search_dir = paths_to_try[-1].parent if paths_to_try else source_dir
+    if search_dir.exists() and search_dir.is_dir():
+        target_lower = base.lower() if base else Path(ref).name.lower()
+        for entry in search_dir.iterdir():
+            if entry.is_file() and entry.name.lower() == target_lower:
+                return entry, entry.name
+
+    # Not found
     raise ImageNotFoundError(f"[{filename}] image not found: {referenced_path} (searched in: {source_dir})")
 
 
@@ -571,15 +609,11 @@ def copy_image(source_path: Path, dest_path: Path, filename: str):
     shutil.copy2(source_path, dest_path)
 
 
-def process_banner_image(fm: Dict, source_dir: Path, dest_dir: Path, filename: str):
-    """
-    Process banner image in frontmatter.
-    Supports: banner: "![[image.png]]" or banner: "![alt](image.png)"
-    Raises ImageNotFoundError if image not found
-    """
+def process_banner_image(fm: Dict, source_dir: Path, dest_dir: Path, filename: str) -> int:
+    """Process banner image in frontmatter. Returns: 1 if processed, 0 if skipped."""
     raw_value = fm.get('banner')
     if not isinstance(raw_value, str):
-        return
+        return 0
 
     assets_dir = dest_dir / 'assets'
     referenced = None
@@ -596,7 +630,7 @@ def process_banner_image(fm: Dict, source_dir: Path, dest_dir: Path, filename: s
             referenced = url.strip() if url else None
 
     if not referenced or is_remote_url(referenced):
-        return
+        return 0
 
     assets_dir.mkdir(parents=True, exist_ok=True)
 
@@ -606,19 +640,18 @@ def process_banner_image(fm: Dict, source_dir: Path, dest_dir: Path, filename: s
     dest_path = assets_dir / normalized_name
 
     copy_image(source_path, dest_path, filename)
-    log.info(f"Banner: {display_name} → assets/{normalized_name}")
+    log.verbose(f"banner: {display_name}")
 
     # Rewrite frontmatter
     fm['image'] = f"./assets/{normalized_name}"
     fm.pop('banner', None)
+    return 1
 
 
-def process_images(content: str, source_dir: Path, dest_dir: Path, filename: str) -> str:
+def process_images(content: str, source_dir: Path, dest_dir: Path, filename: str) -> Tuple[str, int]:
     """
     Process all images in markdown content.
-    Supports both ![[image.png]] and ![alt](image.png "title")
-    Raises ImageNotFoundError if any image not found
-    Returns: updated content
+    Returns: (updated_content, image_count)
     """
     assets_dir = dest_dir / 'assets'
     assets_dir.mkdir(parents=True, exist_ok=True)
@@ -628,7 +661,7 @@ def process_images(content: str, source_dir: Path, dest_dir: Path, filename: str
     md_matches = list(MARKDOWN_IMAGE_REGEX.finditer(content))
 
     if not obs_matches and not md_matches:
-        return content
+        return content, 0
 
     # Deduplicate copy tasks
     copy_plan = {}
@@ -647,16 +680,15 @@ def process_images(content: str, source_dir: Path, dest_dir: Path, filename: str
             dest_path = assets_dir / normalized_name
 
             copy_image(source_path, dest_path, filename)
-            log.info(f"Image: {display_name} → assets/{normalized_name}")
+            log.verbose(f"image: {display_name}")
 
             copy_plan[referenced] = normalized_name
 
-        # Replace in content
+        # Replace in content (empty alt text — Obsidian embeds carry no alt)
         normalized_name = copy_plan[referenced]
-        alt = Path(normalized_name).stem
         updated_content = updated_content.replace(
             match.group(0),
-            f"![{alt}](./assets/{normalized_name})"
+            f"![](./assets/{normalized_name})"
         )
 
     # Process Markdown images
@@ -676,7 +708,7 @@ def process_images(content: str, source_dir: Path, dest_dir: Path, filename: str
             dest_path = assets_dir / normalized_name
 
             copy_image(source_path, dest_path, filename)
-            log.info(f"Image: {display_name} → assets/{normalized_name}")
+            log.verbose(f"image: {display_name}")
 
             copy_plan[referenced] = normalized_name
 
@@ -688,7 +720,7 @@ def process_images(content: str, source_dir: Path, dest_dir: Path, filename: str
             f"![{alt_text}](./assets/{normalized_name}{title_part})"
         )
 
-    return updated_content
+    return updated_content, len(copy_plan)
 
 
 # ============================================================================
@@ -716,8 +748,11 @@ def format_date(date) -> str:
 def build_markdown_content(body: str, fm: Dict) -> str:
     """Build markdown content with formatted frontmatter"""
     formatted = fm.copy()
-    if 'date' in formatted:
-        formatted['date'] = format_date(formatted['date'])
+
+    # Normalize all date fields (blog uses 'date', photos use 'startDate'/'endDate')
+    for key in ('date', 'startDate', 'endDate'):
+        if formatted.get(key):
+            formatted[key] = format_date(formatted[key])
 
     frontmatter_text = build_frontmatter_text(formatted)
     return f"{frontmatter_text}\n\n{body}"
@@ -767,7 +802,7 @@ def process_note(filepath: Path, config: Dict):
     processed_fm = parse_obsidian_frontmatter(fm, str(filepath))
 
     # Process banner image (raises ImageNotFoundError if missing)
-    process_banner_image(
+    img_count = process_banner_image(
         processed_fm,
         Path(config['source_blog_attachment_dir']),
         dest_dir,
@@ -775,19 +810,19 @@ def process_note(filepath: Path, config: Dict):
     )
 
     # Process content images (raises ImageNotFoundError if any missing)
-    updated_content = process_images(
+    updated_content, body_img_count = process_images(
         body,
         Path(config['source_blog_attachment_dir']),
         dest_dir,
         filename
     )
+    img_count += body_img_count
 
     # Write markdown file
     final_content = build_markdown_content(updated_content, processed_fm)
     output_path.write_text(final_content, encoding='utf-8')
 
-    # Return status for logging
-    return reason
+    return reason, img_count
 
 
 def process_photo(filepath: Path, config: Dict):
@@ -831,10 +866,12 @@ def process_photo(filepath: Path, config: Dict):
     if not processed_fm.get('title') or not isinstance(processed_fm.get('title'), str) or not str(processed_fm['title']).strip():
         processed_fm['title'] = get_basename(filename)
 
+    img_count = 0
+
     # Process favicon image if present
     if processed_fm.get('favicon'):
         favicon_value = processed_fm['favicon']
-        
+
         # Only process if it's a file path (not emoji or plain text)
         if is_file_path(favicon_value) and not is_remote_url(favicon_value):
             # Try to find and normalize the favicon image
@@ -850,26 +887,27 @@ def process_photo(filepath: Path, config: Dict):
                 dest_path = assets_dir / normalized_name
                 copy_image(source_path, dest_path, filename)
                 processed_fm['favicon'] = f"./assets/{normalized_name}"
-                log.info(f"Favicon: {display_name} → ./assets/{normalized_name}")
+                log.verbose(f"favicon: {display_name}")
+                img_count += 1
             except ImageNotFoundError:
                 # If favicon image not found, keep original value and warn
                 log.warn(f"Favicon image not found: {favicon_value} (in {filename}), keeping original value")
         # else: favicon is emoji/text or remote URL, keep as-is
 
     # Process content images (raises ImageNotFoundError if any missing)
-    updated_content = process_images(
+    updated_content, body_img_count = process_images(
         body,
         Path(config['source_photos_attachment_dir']),
         dest_dir,
         filename
     )
+    img_count += body_img_count
 
     # Write markdown file
     final_content = build_markdown_content(updated_content, processed_fm)
     output_path.write_text(final_content, encoding='utf-8')
 
-    # Return status for logging
-    return reason
+    return reason, img_count
 
 
 # ============================================================================
@@ -878,7 +916,8 @@ def process_photo(filepath: Path, config: Dict):
 
 def load_env_from_file(env_path: str = '.env'):
     """Simple .env file loader with quote handling"""
-    if not os.path.exists(env_path):
+    env_file = Path(env_path)
+    if not env_file.exists():
         return
 
     with open(env_path, 'r', encoding='utf-8') as f:
@@ -949,6 +988,10 @@ def main():
     # Load .env file
     load_env_from_file('.env')
 
+    # VERBOSE=1 for detailed output (image-level logs)
+    verbose = os.getenv('VERBOSE', os.getenv('IMPORT_VERBOSE', '')).lower() in ('1', 'true', 'yes')
+    Logger.set_verbose(verbose)
+
     # Validate environment
     validate_environment()
     config = get_env_config()
@@ -957,21 +1000,17 @@ def main():
     import_mode = config['import_mode']
     
     # Header
-    log.header("Obsidian → Astro Content Importer")
-    mode_desc = {
-        'update': 'Update (import new & modified)',
-        'force': 'Force (overwrite all)',
-        'skip': 'Skip (only new files)'
-    }
-    log.dim(f"Mode: {mode_desc.get(import_mode, import_mode)} | Type: {import_type}")
+    log.header(f"Obsidian → Astro  ({import_mode} · {import_type})")
     print()
 
     # Statistics
     stats = {
         'blog_new': 0,
         'blog_updated': 0,
+        'blog_forced': 0,
         'photo_new': 0,
         'photo_updated': 0,
+        'photo_forced': 0,
         'skipped': 0
     }
 
@@ -980,7 +1019,7 @@ def main():
         blog_source_dir = Path(config['source_blog_dir'])
         if not blog_source_dir.exists():
             log.error(f"Blog source directory not found: {blog_source_dir}")
-            exit(1)
+            sys.exit(1)
         
         blog_files = [f for f in blog_source_dir.iterdir() if f.is_file() and is_markdown_file(f.name)]
         
@@ -989,29 +1028,27 @@ def main():
             
             for idx, filepath in enumerate(blog_files, 1):
                 try:
-                    status = process_note(filepath, config)
-                    folder_name = to_safe_folder_name(get_basename(str(filepath)))
-                    
+                    status, img_count = process_note(filepath, config)
+                    tag = {'new': ' ', 'updated': f' {Colors.YELLOW}upd{Colors.RESET}', 'forced': f' {Colors.MAGENTA}fc{Colors.RESET}'}.get(status, '')
+                    img_info = f' {Colors.DIM}({img_count} img){Colors.RESET}' if img_count > 0 else ''
+                    log.success(f"[{idx}/{len(blog_files)}]{tag} {filepath.name}{img_info}")
                     if status == 'new':
-                        log.success(f"Blog: {Colors.DIM}{filepath.name}{Colors.RESET} → {folder_name}/index.md")
                         stats['blog_new'] += 1
                     elif status == 'updated':
-                        log.success(f"Blog: {Colors.DIM}{filepath.name}{Colors.RESET} → {folder_name}/index.md {Colors.YELLOW}(updated){Colors.RESET}")
                         stats['blog_updated'] += 1
                     elif status == 'forced':
-                        log.success(f"Blog: {Colors.DIM}{filepath.name}{Colors.RESET} → {folder_name}/index.md {Colors.MAGENTA}(forced){Colors.RESET}")
-                        stats['blog_new'] += 1
-                        
+                        stats['blog_forced'] += 1
+
                 except SkipFileError as e:
-                    log.dim(f"   Unchanged: {filepath.name}")
+                    log.dim(f"[{idx}/{len(blog_files)}]   {filepath.name}  (unchanged)")
                     stats['skipped'] += 1
                 except (ImageNotFoundError, ValidationError) as e:
                     log.error(str(e))
                     log.error(f"Import stopped at: {filepath.name}")
-                    exit(1)
+                    sys.exit(1)
                 except Exception as e:
                     log.error(f"Unexpected error in {filepath.name}: {str(e)}")
-                    exit(1)
+                    sys.exit(1)
             print()
 
     # Process photo files
@@ -1019,7 +1056,7 @@ def main():
         photos_source_dir = Path(config['source_photos_dir'])
         if not photos_source_dir.exists():
             log.error(f"Photos source directory not found: {photos_source_dir}")
-            exit(1)
+            sys.exit(1)
         
         photo_files = [f for f in photos_source_dir.iterdir() if f.is_file() and is_markdown_file(f.name)]
         
@@ -1028,64 +1065,54 @@ def main():
             
             for idx, filepath in enumerate(photo_files, 1):
                 try:
-                    status = process_photo(filepath, config)
-                    folder_name = to_safe_folder_name(get_basename(str(filepath)))
-                    
+                    status, img_count = process_photo(filepath, config)
+                    tag = {'new': ' ', 'updated': f' {Colors.YELLOW}upd{Colors.RESET}', 'forced': f' {Colors.MAGENTA}fc{Colors.RESET}'}.get(status, '')
+                    img_info = f' {Colors.DIM}({img_count} img){Colors.RESET}' if img_count > 0 else ''
+                    log.success(f"[{idx}/{len(photo_files)}]{tag} {filepath.name}{img_info}")
                     if status == 'new':
-                        log.success(f"Photo: {Colors.DIM}{filepath.name}{Colors.RESET} → {folder_name}/index.md")
                         stats['photo_new'] += 1
                     elif status == 'updated':
-                        log.success(f"Photo: {Colors.DIM}{filepath.name}{Colors.RESET} → {folder_name}/index.md {Colors.YELLOW}(updated){Colors.RESET}")
                         stats['photo_updated'] += 1
                     elif status == 'forced':
-                        log.success(f"Photo: {Colors.DIM}{filepath.name}{Colors.RESET} → {folder_name}/index.md {Colors.MAGENTA}(forced){Colors.RESET}")
-                        stats['photo_new'] += 1
-                        
+                        stats['photo_forced'] += 1
+
                 except SkipFileError as e:
-                    log.dim(f"   Unchanged: {filepath.name}")
+                    log.dim(f"[{idx}/{len(photo_files)}]   {filepath.name}  (unchanged)")
                     stats['skipped'] += 1
                 except (ImageNotFoundError, ValidationError) as e:
                     log.error(str(e))
                     log.error(f"Import stopped at: {filepath.name}")
-                    exit(1)
+                    sys.exit(1)
                 except Exception as e:
                     log.error(f"Unexpected error in {filepath.name}: {str(e)}")
-                    exit(1)
+                    sys.exit(1)
             print()
 
     # Summary
-    total_new = stats['blog_new'] + stats['photo_new']
-    total_updated = stats['blog_updated'] + stats['photo_updated']
-    total_processed = total_new + total_updated
-    
+    total_blog = stats['blog_new'] + stats['blog_updated'] + stats['blog_forced']
+    total_photo = stats['photo_new'] + stats['photo_updated'] + stats['photo_forced']
+    total_processed = total_blog + total_photo
+
     if total_processed > 0:
-        summary_parts = []
-        
-        # Blog summary
-        if stats['blog_new'] > 0 or stats['blog_updated'] > 0:
-            blog_parts = []
-            if stats['blog_new'] > 0:
-                blog_parts.append(f"{Colors.BRIGHT_CYAN}{stats['blog_new']}{Colors.RESET} new")
-            if stats['blog_updated'] > 0:
-                blog_parts.append(f"{Colors.YELLOW}{stats['blog_updated']}{Colors.RESET} updated")
-            summary_parts.append(f"Blog: {', '.join(blog_parts)}")
-        
-        # Photo summary
-        if stats['photo_new'] > 0 or stats['photo_updated'] > 0:
-            photo_parts = []
-            if stats['photo_new'] > 0:
-                photo_parts.append(f"{Colors.BRIGHT_CYAN}{stats['photo_new']}{Colors.RESET} new")
-            if stats['photo_updated'] > 0:
-                photo_parts.append(f"{Colors.YELLOW}{stats['photo_updated']}{Colors.RESET} updated")
-            summary_parts.append(f"Photo: {', '.join(photo_parts)}")
-        
-        log.success(f"Import completed: {' | '.join(summary_parts)}")
-        
-        if stats['skipped'] > 0:
-            log.dim(f"   Unchanged: {stats['skipped']} file(s)")
+        parts = []
+        if total_blog > 0:
+            b = []
+            if stats['blog_new']: b.append(f"{stats['blog_new']} new")
+            if stats['blog_updated']: b.append(f"{stats['blog_updated']} upd")
+            if stats['blog_forced']: b.append(f"{stats['blog_forced']} fc")
+            parts.append(f"Blog: {', '.join(b)}")
+        if total_photo > 0:
+            p = []
+            if stats['photo_new']: p.append(f"{stats['photo_new']} new")
+            if stats['photo_updated']: p.append(f"{stats['photo_updated']} upd")
+            if stats['photo_forced']: p.append(f"{stats['photo_forced']} fc")
+            parts.append(f"Photo: {', '.join(p)}")
+        skip_note = f"  ({stats['skipped']} skipped)" if stats['skipped'] > 0 else ""
+        print()
+        log.success(f"Done  {' | '.join(parts)}{skip_note}")
     else:
         if stats['skipped'] > 0:
-            log.info(f"All files are up to date ({stats['skipped']} unchanged)")
+            log.info(f"All files up to date ({stats['skipped']} unchanged)")
         else:
             log.warn("No files found to import")
 
@@ -1096,7 +1123,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print()
         log.error("Import interrupted by user")
-        exit(1)
+        sys.exit(1)
     except Exception as e:
         log.error(f"Fatal error: {str(e)}")
-        exit(1)
+        sys.exit(1)
