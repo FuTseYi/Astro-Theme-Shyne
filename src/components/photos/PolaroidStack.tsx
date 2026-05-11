@@ -17,7 +17,12 @@ const generateRotations = (count: number) =>
 
 const MODAL_UNMOUNT_DELAY = 260
 
-const PolaroidStack: React.FC<Props> = ({ photos, title, description, className }) => {
+const PolaroidStack: React.FC<Props> = ({
+  photos,
+  title,
+  description,
+  className,
+}) => {
   const ref = React.useRef<HTMLDivElement | null>(null)
   const isInView = useInView(ref, { once: true, amount: 0.4 })
   const [isModalOpen, setIsModalOpen] = React.useState(false)
@@ -30,12 +35,13 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
   React.useEffect(() => {
     // 延迟入场动画，避开 View Transitions 和同时水合的高峰期
     const timer = setTimeout(() => setIsReady(true), 350)
-    
+
     const mediaQuery = window.matchMedia('(hover: hover) and (pointer: fine)')
     setEnableHoverEffects(mediaQuery.matches)
-    const listener = (e: MediaQueryListEvent) => setEnableHoverEffects(e.matches)
+    const listener = (e: MediaQueryListEvent) =>
+      setEnableHoverEffects(e.matches)
     mediaQuery.addEventListener('change', listener)
-    
+
     return () => {
       clearTimeout(timer)
       if (closeTimerRef.current) {
@@ -45,7 +51,28 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
     }
   }, [])
 
-  const photoRotations = React.useMemo(() => generateRotations(photos.length), [photos.length])
+  React.useEffect(() => {
+    const timelineItem = ref.current?.closest(
+      '.timeline-item',
+    ) as HTMLElement | null
+
+    if (!timelineItem) return
+
+    if (shouldRenderModal) {
+      timelineItem.dataset.galleryOpen = 'true'
+    } else {
+      delete timelineItem.dataset.galleryOpen
+    }
+
+    return () => {
+      delete timelineItem.dataset.galleryOpen
+    }
+  }, [shouldRenderModal])
+
+  const photoRotations = React.useMemo(
+    () => generateRotations(photos.length),
+    [photos.length],
+  )
   const handlePhotoClick = (index: number) => {
     if (closeTimerRef.current) {
       window.clearTimeout(closeTimerRef.current)
@@ -69,11 +96,17 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
     <>
       <motion.div
         ref={ref}
-        className={cn('perspective-1000 flex flex-wrap items-start pt-2 sm:pt-3', className)}
+        className={cn(
+          'perspective-1000 flex flex-wrap items-start pt-2 sm:pt-3',
+          className,
+        )}
         style={{ contain: 'layout' }}
       >
         {photos.map((photo, index) => (
-          <div key={`${photo.src}-${index}`} onClick={() => handlePhotoClick(index)}>
+          <div
+            key={`${photo.src}-${index}`}
+            onClick={() => handlePhotoClick(index)}
+          >
             <PolaroidCard
               photo={photo}
               index={index}
@@ -102,4 +135,3 @@ const PolaroidStack: React.FC<Props> = ({ photos, title, description, className 
 }
 
 export default PolaroidStack
-

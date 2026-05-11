@@ -82,7 +82,7 @@ const getDateRange = (start?: string, end?: string): string => {
               )}
 
               {timeline.description && (
-                <p class="border-border/70 text-foreground/75 group-hover/item:border-accent group-hover/item:text-foreground group-focus-within/item:border-accent group-focus-within/item:text-foreground mt-3 border-l-2 pl-3 text-sm leading-relaxed transition-colors">
+                <p class="photo-timeline-description border-border/70 text-foreground/75 group-hover/item:border-accent group-hover/item:text-foreground mt-3 border-l-2 pl-3 text-sm leading-relaxed transition-colors">
                   {timeline.description}
                 </p>
               )}
@@ -102,3 +102,10 @@ const getDateRange = (start?: string, end?: string): string => {
     })
   }
 </div>
+
+<style>
+  .timeline-item[data-gallery-open='true'] .photo-timeline-description {
+    border-color: var(--accent);
+    color: var(--foreground);
+  }
+</style>

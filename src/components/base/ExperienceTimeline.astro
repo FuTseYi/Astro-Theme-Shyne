@@ -152,10 +152,10 @@ const sortedExperiences = [...experiences].sort(compareExperiences)
                     <Link
                       href={companyUrl}
                       external
-                      class="text-foreground/90 hover:text-accent group-hover/item:text-accent group-focus-within/item:text-accent inline-flex w-fit items-center gap-1.5 text-base leading-snug font-semibold transition-colors"
+                      class="text-foreground/85 hover:text-accent focus-visible:text-accent group-hover/item:text-accent inline-flex w-fit items-center gap-1.5 text-sm leading-snug font-semibold transition-colors"
                     >
                       <svg
-                        class="text-muted-foreground group-hover/item:text-accent group-focus-within/item:text-accent size-3.5 shrink-0 transition-colors"
+                        class="text-muted-foreground group-hover/item:text-accent size-3.5 shrink-0 transition-colors"
                         viewBox="0 0 24 24"
                         aria-hidden="true"
                       >
@@ -167,9 +167,9 @@ const sortedExperiences = [...experiences].sort(compareExperiences)
                       <span>{exp.data.company}</span>
                     </Link>
                   ) : (
-                    <p class="text-foreground/90 group-hover/item:text-accent group-focus-within/item:text-accent inline-flex items-center gap-1.5 text-base leading-snug font-semibold transition-colors">
+                    <p class="text-foreground/85 group-hover/item:text-accent inline-flex items-center gap-1.5 text-sm leading-snug font-semibold transition-colors">
                       <svg
-                        class="text-muted-foreground group-hover/item:text-accent group-focus-within/item:text-accent size-3.5 shrink-0 transition-colors"
+                        class="text-muted-foreground group-hover/item:text-accent size-3.5 shrink-0 transition-colors"
                         viewBox="0 0 24 24"
                         aria-hidden="true"
                       >
@@ -208,7 +208,7 @@ const sortedExperiences = [...experiences].sort(compareExperiences)
               </div>
 
               {exp.data.description && (
-                <p class="border-border/70 text-foreground/75 group-hover/item:border-accent group-hover/item:text-foreground group-focus-within/item:border-accent group-focus-within/item:text-foreground mt-3 border-l-2 pl-3 text-sm leading-relaxed transition-colors">
+                <p class="border-border/70 text-foreground/75 group-hover/item:border-accent group-hover/item:text-foreground mt-3 border-l-2 pl-3 text-sm leading-relaxed transition-colors">
                   {exp.data.description}
                 </p>
               )}
