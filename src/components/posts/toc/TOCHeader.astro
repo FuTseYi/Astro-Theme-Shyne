@@ -65,37 +65,41 @@ const getDisplayDepth = (depth: number) =>
           </div>
         </summary>
 
-        <ScrollArea
-          client:load
-          className="mx-auto max-w-3xl"
-          data-toc-header-scroll
-        >
-          <div class="max-h-[30vh]">
-            <ul
-              class="flex list-none flex-col gap-y-2 px-4 pb-4"
-              id="mobile-table-of-contents"
+        <div data-header-collapsible-content>
+          <div class="min-h-0 overflow-hidden">
+            <ScrollArea
+              client:load
+              className="mx-auto max-w-3xl"
+              data-toc-header-scroll
             >
-              {headings.map((heading) => (
-                <li
-                  data-mobile-toc-item
-                  data-heading-depth={getDisplayDepth(heading.depth)}
-                  class={cn(
-                    'border-border/40 relative border-l py-0.5 pr-4 pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
-                    getTOCLevelClass(getDisplayDepth(heading.depth)),
-                  )}
+              <div class="max-h-[30vh]">
+                <ul
+                  class="flex list-none flex-col gap-y-2 px-4 pb-4"
+                  id="mobile-table-of-contents"
                 >
-                  <a
-                    href={`#${heading.slug}`}
-                    class="mobile-toc-item focus-visible:ring-ring block rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
-                    data-heading-id={heading.slug}
-                  >
-                    {heading.text}
-                  </a>
-                </li>
-              ))}
-            </ul>
+                  {headings.map((heading) => (
+                    <li
+                      data-mobile-toc-item
+                      data-heading-depth={getDisplayDepth(heading.depth)}
+                      class={cn(
+                        'border-border/40 relative border-l py-0.5 pr-4 pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
+                        getTOCLevelClass(getDisplayDepth(heading.depth)),
+                      )}
+                    >
+                      <a
+                        href={`#${heading.slug}`}
+                        class="mobile-toc-item focus-visible:ring-ring block rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
+                        data-heading-id={heading.slug}
+                      >
+                        {heading.text}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </ScrollArea>
           </div>
-        </ScrollArea>
+        </div>
       </details>
     </div>
   )
@@ -416,7 +420,10 @@ const getDisplayDepth = (depth: number) =>
           passive: true,
         })
         scrollAreaScrollCleanup = () => {
-          state.scrollArea?.removeEventListener('scroll', handleScrollAreaScroll)
+          state.scrollArea?.removeEventListener(
+            'scroll',
+            handleScrollAreaScroll,
+          )
         }
       }
 
@@ -428,7 +435,10 @@ const getDisplayDepth = (depth: number) =>
         }
         state.detailsElement.addEventListener('toggle', handleDetailsToggle)
         detailsToggleCleanup = () => {
-          state.detailsElement?.removeEventListener('toggle', handleDetailsToggle)
+          state.detailsElement?.removeEventListener(
+            'toggle',
+            handleDetailsToggle,
+          )
         }
       }
     }

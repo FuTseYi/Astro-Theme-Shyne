@@ -45,6 +45,14 @@ const { class: className } = Astro.props
     <Footer />
     <script>
       class SiteHeaderController {
+        private static readonly pinnedNavigationSelector =
+          '#mobile-toc-container, #mobile-subposts-container'
+        private static readonly expandedPinnedDisclosureSelector =
+          '#mobile-toc-container > details[open], #mobile-subposts-container > details[open]'
+        private static readonly pinnedSummarySelector =
+          '#mobile-toc-container > details > summary, #mobile-subposts-container > details > summary'
+        private static readonly animationDurationMs = 300
+
         private header: HTMLElement | null = null
         private lastScrollY = 0
         private directionStartY = 0
@@ -52,12 +60,25 @@ const { class: className } = Astro.props
         private isNavVisible = true
         private preserveHiddenUntil = 0
         private ticking = false
+        private pinnedNavigationCloseTimers = new WeakMap<
+          HTMLDetailsElement,
+          number
+        >()
+        private pinnedNavigationDetails = new Set<HTMLDetailsElement>()
         private readonly topThreshold = 24
         private readonly minDelta = 6
         private readonly hideDistance = 96
         private readonly showDistance = 128
         private readonly keepVisibleUntilScrollY = 680
         private readonly mobileTocTopThreshold = 2
+
+        private hasExpandedPinnedNavigation() {
+          return Boolean(
+            document.querySelector(
+              SiteHeaderController.expandedPinnedDisclosureSelector,
+            ),
+          )
+        }
 
         init() {
           this.header = document.getElementById('main-header')
@@ -84,6 +105,16 @@ const { class: className } = Astro.props
             this.handlePinnedNavigationInteraction,
             true,
           )
+          document.addEventListener(
+            'click',
+            this.handlePinnedNavigationToggleRequest,
+            true,
+          )
+          document.addEventListener(
+            'keydown',
+            this.handlePinnedNavigationToggleRequest,
+            true,
+          )
           document.addEventListener('astro:before-swap', this.cleanup)
         }
 
@@ -101,8 +132,19 @@ const { class: className } = Astro.props
             this.handlePinnedNavigationInteraction,
             true,
           )
+          document.removeEventListener(
+            'click',
+            this.handlePinnedNavigationToggleRequest,
+            true,
+          )
+          document.removeEventListener(
+            'keydown',
+            this.handlePinnedNavigationToggleRequest,
+            true,
+          )
           document.removeEventListener('astro:before-swap', this.cleanup)
           this.ticking = false
+          this.clearPinnedNavigationCloseTimers()
           this.header = null
         }
 
@@ -131,13 +173,15 @@ const { class: className } = Astro.props
         }
 
         private handlePinnedNavigationInteraction = (event: Event) => {
-          if (!this.header || this.isNavVisible) return
+          if (!this.header) return
 
           const target = event.target as Element | null
           const pinnedNavigation = target?.closest(
-            '#mobile-toc-container, #mobile-subposts-container',
+            SiteHeaderController.pinnedNavigationSelector,
           )
           if (!pinnedNavigation) return
+
+          if (this.isNavVisible || this.hasExpandedPinnedNavigation()) return
 
           const currentScrollY = Math.max(window.scrollY, 0)
           this.preserveHiddenUntil = performance.now() + 520
@@ -148,13 +192,76 @@ const { class: className } = Astro.props
           this.header.dataset.show = 'false'
         }
 
+        private isActivationEvent(event: Event) {
+          if (!(event instanceof KeyboardEvent)) return true
+
+          return event.key === 'Enter' || event.key === ' '
+        }
+
+        private handlePinnedNavigationToggleRequest = (event: Event) => {
+          if (!this.header) return
+
+          const target = event.target as Element | null
+          const summary = target?.closest(
+            SiteHeaderController.pinnedSummarySelector,
+          ) as HTMLElement | null
+          if (!summary) return
+
+          if (!this.isActivationEvent(event)) return
+
+          event.preventDefault()
+
+          const details = summary.closest(
+            'details',
+          ) as HTMLDetailsElement | null
+          if (!details) return
+
+          this.clearPinnedNavigationCloseTimer(details)
+
+          if (details.open && details.dataset.closing !== 'true') {
+            details.dataset.closing = 'true'
+
+            const closeTimer = window.setTimeout(() => {
+              details.open = false
+              delete details.dataset.closing
+              this.pinnedNavigationCloseTimers.delete(details)
+              this.pinnedNavigationDetails.delete(details)
+            }, SiteHeaderController.animationDurationMs)
+            this.pinnedNavigationCloseTimers.set(details, closeTimer)
+            this.pinnedNavigationDetails.add(details)
+          } else {
+            delete details.dataset.closing
+            details.open = true
+          }
+        }
+
+        private clearPinnedNavigationCloseTimer(details: HTMLDetailsElement) {
+          const closeTimer = this.pinnedNavigationCloseTimers.get(details)
+          if (!closeTimer) return
+
+          window.clearTimeout(closeTimer)
+          this.pinnedNavigationCloseTimers.delete(details)
+          this.pinnedNavigationDetails.delete(details)
+        }
+
+        private clearPinnedNavigationCloseTimers() {
+          this.pinnedNavigationDetails.forEach((details) => {
+            const closeTimer = this.pinnedNavigationCloseTimers.get(details)
+            if (closeTimer) window.clearTimeout(closeTimer)
+            delete details.dataset.closing
+          })
+          this.pinnedNavigationCloseTimers = new WeakMap()
+          this.pinnedNavigationDetails.clear()
+        }
+
         private hasPinnedMobileNavigation() {
           const isMobile = window.matchMedia('(max-width: 1279px)').matches
           if (!isMobile) return false
 
           return Boolean(
-            document.getElementById('mobile-toc-container') ||
-            document.getElementById('mobile-subposts-container'),
+            document.querySelector(
+              SiteHeaderController.pinnedNavigationSelector,
+            ),
           )
         }
 
@@ -315,6 +422,11 @@ const { class: className } = Astro.props
 
       #main-header {
         pointer-events: none;
+        overflow-anchor: none;
+      }
+
+      #main-header + main {
+        overflow-anchor: none;
       }
 
       #main-header header-nav-component,
@@ -380,6 +492,36 @@ const { class: className } = Astro.props
       #main-header #mobile-toc-container summary > div {
         padding-block: 0.625rem;
         padding-inline: 0.75rem;
+      }
+
+      #main-header
+        :is(#mobile-subposts-container, #mobile-toc-container)
+        [data-header-collapsible-content] {
+        display: grid !important;
+        grid-template-rows: 0fr;
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          grid-template-rows 0.3s ease-out,
+          opacity 0.2s ease-out;
+      }
+
+      #main-header
+        :is(#mobile-subposts-container, #mobile-toc-container)
+        > details[open]
+        [data-header-collapsible-content] {
+        grid-template-rows: 1fr;
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      #main-header
+        :is(#mobile-subposts-container, #mobile-toc-container)
+        > details[data-closing='true']
+        [data-header-collapsible-content] {
+        grid-template-rows: 0fr;
+        opacity: 0;
+        pointer-events: none;
       }
 
       #main-header
