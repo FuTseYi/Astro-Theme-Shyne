@@ -11,7 +11,6 @@ interface Props {
 
 const { photoData, class: className } = Astro.props
 
-// 格式化日期（含具体天），风格参考 Experience，但增加 day
 const formatDate = (date: string | undefined): string => {
   if (!date) return ''
   const parsed = new Date(date)
@@ -33,59 +32,73 @@ const getDateRange = (start?: string, end?: string): string => {
     return `${startText} - ${endText}`
   }
 
-  // 仅有开始日期、仅有结束日期，或两端是同一天时都显示单个日期
   return startText || endText
 }
 ---
 
 <div class={cn(className)}>
   {
-    photoData.map((timeline, index) => (
-      <div class="timeline-item group/item relative [contain-intrinsic-size:220px] [content-visibility:auto]">
-        <div class="flex gap-x-3">
-          <div class="relative after:absolute after:start-3.5 after:top-7 after:bottom-0 after:w-px after:-translate-x-[0.5px] after:bg-zinc-200/50 last:after:hidden dark:after:bg-zinc-700/50">
-            <div class="relative z-10 flex size-7 items-center justify-center">
-              <TimelineIcon icon={timeline.icon} index={index} />
+    photoData.map((timeline, index) => {
+      const dateRange = getDateRange(timeline.date, timeline.endDate)
+      const location = timeline.location?.trim()
+
+      return (
+        <div class="timeline-item group/item relative [contain-intrinsic-size:220px] [content-visibility:auto]">
+          <div class="flex gap-x-3">
+            <div class="relative after:absolute after:start-3.5 after:top-7 after:bottom-0 after:w-px after:-translate-x-[0.5px] after:bg-zinc-200/50 last:after:hidden dark:after:bg-zinc-700/50">
+              <div class="relative z-10 flex size-7 items-center justify-center">
+                <TimelineIcon icon={timeline.icon} index={index} />
+              </div>
             </div>
-          </div>
-          <div class="relative grow pt-0.5 pb-8">
-            {(timeline.date || timeline.endDate) && (
-              <p class="text-muted-foreground right-0 mt-1 block text-xs font-semibold sm:absolute sm:top-1.5 sm:mt-0">
-                {getDateRange(timeline.date, timeline.endDate)}
-              </p>
-            )}
-            <h2 class="text-md mt-0.5 font-sans font-normal sm:mt-0">
-              <span class="font-semibold">{timeline.title}</span>
-              {timeline.location && (
-                <span class="text-muted-foreground ml-2 inline-flex items-center gap-1 align-middle text-xs">
-                  <svg
-                    class="text-muted-foreground size-3.5"
-                    viewBox="0 0 24 24"
-                    aria-hidden="true"
-                  >
-                    <path
-                      fill="currentColor"
-                      d="M12 2.75c-3.04 0-5.5 2.42-5.5 5.4 0 3.77 3.4 7.47 5.03 9.15.26.27.68.27.94 0 1.63-1.68 5.03-5.38 5.03-9.15 0-2.98-2.46-5.4-5.5-5.4Zm0 7.55a2.15 2.15 0 1 1 0-4.3 2.15 2.15 0 0 1 0 4.3Z"
-                    />
-                  </svg>
-                  <span>{timeline.location}</span>
-                </span>
+            <div class="relative grow pt-0.5 pb-8">
+              <h2 class="text-foreground mt-0.5 font-sans text-base leading-tight font-semibold sm:mt-0">
+                {timeline.title}
+              </h2>
+
+              {(dateRange || location) && (
+                <div class="text-muted-foreground mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                  {dateRange && <span class="tabular-nums">{dateRange}</span>}
+                  {dateRange && location && (
+                    <span class="text-border" aria-hidden="true">
+                      &middot;
+                    </span>
+                  )}
+                  {location && (
+                    <span class="inline-flex items-center gap-1">
+                      <svg
+                        class="size-3.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        aria-hidden="true"
+                      >
+                        <path
+                          fill="currentColor"
+                          d="M12 2.75c-3.04 0-5.5 2.42-5.5 5.4 0 3.77 3.4 7.47 5.03 9.15.26.27.68.27.94 0 1.63-1.68 5.03-5.38 5.03-9.15 0-2.98-2.46-5.4-5.5-5.4Zm0 7.55a2.15 2.15 0 1 1 0-4.3 2.15 2.15 0 0 1 0 4.3Z"
+                        />
+                      </svg>
+                      <span>{location}</span>
+                    </span>
+                  )}
+                </div>
               )}
-            </h2>
-            <p class="text-muted-foreground mt-0.5 text-sm sm:mt-1">
-              {timeline.description && <span>{timeline.description}</span>}
-            </p>
-            <div class="mt-5">
-              <PolaroidStack
-                photos={timeline.photos}
-                title={timeline.title}
-                description={timeline.description}
-                client:visible
-              />
+
+              {timeline.description && (
+                <p class="border-border/70 text-foreground/75 group-hover/item:border-accent group-hover/item:text-foreground group-focus-within/item:border-accent group-focus-within/item:text-foreground mt-3 border-l-2 pl-3 text-sm leading-relaxed transition-colors">
+                  {timeline.description}
+                </p>
+              )}
+
+              <div class="mt-5">
+                <PolaroidStack
+                  photos={timeline.photos}
+                  title={timeline.title}
+                  description={timeline.description}
+                  client:visible
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    ))
+      )
+    })
   }
 </div>
