@@ -5,6 +5,7 @@ import '@/styles/typography.css'
 
 import Head from '@/components/base/Head.astro'
 import LoadingBar from '@/components/base/LoadingBar.astro'
+import SpeedInsights from '@vercel/speed-insights/astro'
 import { SITE } from '@/config'
 import { cn } from '@/lib/utils'
 import Footer from './Footer.astro'
@@ -477,5 +478,6 @@ const { class: className } = Astro.props
         background-color: var(--muted);
       }
     </style>
+    <SpeedInsights />
   </body>
 </html>
