@@ -363,6 +363,28 @@ A: 在 `src/config.ts` 的 `HEADER_LINKS` 中注释掉对应链接，或删除 `
 
 ---
 
+<div align="center"> 
+  <a href="https://www.star-history.com/#FuTseYi/Astro-Theme-Shyne&type=timeline&legend=top-left"> 
+    <picture> 
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=FuTseYi/Astro-Theme-Shyne&type=timeline&theme=dark&legend=top-left" /> 
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=FuTseYi/Astro-Theme-Shyne&type=timeline&legend=top-left" /> 
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=FuTseYi/Astro-Theme-Shyne&type=timeline&legend=top-left" />
+    </picture> 
+  </a>
+</div>
+
+
+<div align="center" style="margin-top: 30px;">
+  <a href="https://github.com/FuTseYi/Astro-Theme-Shyne/graphs/contributors">
+    <img
+      src="https://contrib.rocks/image?repo=FuTseYi/Astro-Theme-Shyne"
+      alt="Contributors"
+    />
+  </a>
+</div>
+
+---
+
 <div align="center">
 
 **如果这个项目对你有帮助，请 ⭐ Star 支持！**
