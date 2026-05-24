@@ -1,0 +1,84 @@
+---
+import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
+import Link from '@/components/base/Link.astro'
+import PageHead from '@/components/posts/base/PageHead.astro'
+import Layout from '@/layouts/Layout.astro'
+import { getAllPosts, groupPostsByYear } from '@/lib/data-utils'
+import { formatDate } from '@/lib/utils'
+
+const allPosts = await getAllPosts()
+const postsByYear = groupPostsByYear(allPosts)
+const sortedYears = Object.keys(postsByYear).sort((a, b) => +b - +a)
+---
+
+<Layout class="max-w-3xl">
+  <PageHead slot="head" title="Archives" />
+  <Breadcrumbs
+    items={[
+      { label: 'Blog', href: '/blog', icon: 'lucide:library-big' },
+      { label: 'Archives', icon: 'lucide:archive' },
+    ]}
+  />
+
+  <main class="mt-6 lg:mt-10">
+    <div id="content-header">
+      <h1 class="mb-6 text-3xl font-medium">Archives</h1>
+    </div>
+
+    {allPosts.length === 0 && <p class="text-muted-foreground py-20 text-center">No posts yet.</p>}
+
+    <section id="content" aria-label="Blog post list">
+      {sortedYears.map((year) => {
+        const posts = postsByYear[year]
+        return (
+          <div class="relative mt-20">
+            <h2
+              class="pointer-events-none absolute -start-6 -top-16 z-0 select-none text-9xl font-bold text-transparent opacity-10"
+              style="-webkit-text-stroke-width:2px;-webkit-text-stroke-color:var(--foreground)"
+            >
+              {year}
+            </h2>
+            <p class="text-muted-foreground px-5">
+              {posts.length} post{posts.length > 1 ? 's' : ''}
+            </p>
+            <ul class="flex flex-col text-start">
+              {posts.map((post) => {
+                const date = post.data.date ? formatDate(post.data.date) : ''
+                return (
+                  <li>
+                    <Link
+                      href={`/blog/${post.id}`}
+                      class="block w-full rounded-2xl border-0 bg-transparent px-5 py-2 hover:bg-muted hover:text-accent group"
+                    >
+                      <div class="relative flex flex-col gap-1 sm:flex-row sm:items-center">
+                        <span class="text-muted-foreground/70 min-w-[95px] text-xs">{date}</span>
+                        <div class="flex flex-grow justify-between">
+                          <span>{post.data.title ?? 'Untitled'}</span>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="16" height="16"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="my-1 shrink-0 stroke-muted-foreground duration-300 group-hover:stroke-accent"
+                          >
+                            <line x1="5" y1="12" x2="19" y2="12"
+                              class="translate-x-4 scale-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1 group-hover:scale-x-100" />
+                            <polyline points="12 5 19 12 12 19"
+                              class="translate-x-0 transition-all duration-300 ease-in-out group-hover:translate-x-1" />
+                          </svg>
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )
+      })}
+    </section>
+  </main>
+</Layout>

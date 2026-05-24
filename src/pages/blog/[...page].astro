@@ -36,6 +36,20 @@ const sortedTags = await getSortedTags()
     ]}
   />
 
+  <div class="flex items-center justify-between">
+    <span class="text-muted-foreground text-sm">
+      Page {page.currentPage} — Showing {page.data.length} of {page.total} post{page.total !== 1 ? 's' : ''}
+    </span>
+    <Link
+      href="/archive"
+      class="text-muted-foreground hover:text-foreground flex items-center gap-x-1 text-sm transition-colors"
+    >
+      <Icon name="lucide:archive" class="size-4" />
+      View all posts by years
+      <Icon name="lucide:arrow-right" class="size-3.5" />
+    </Link>
+  </div>
+
   <div class="grid gap-x-8 gap-y-8 sm:grid-cols-[3fr_1fr]">
     <!-- 左侧文章列表 -->
     <div class="flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
