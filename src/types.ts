@@ -21,7 +21,6 @@ export type Site = {
   featuredProjectCount: number
   featuredExperienceCount: number
   postsPerPage: number
-  projectsPerPage: number
 }
 
 export type NavLink = {

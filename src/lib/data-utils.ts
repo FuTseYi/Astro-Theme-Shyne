@@ -69,27 +69,38 @@ export async function getAllPostsAndSubposts(): Promise<
 export async function getAllProjects(): Promise<CollectionEntry<'projects'>[]> {
   const projects = await getCollection('projects')
   return projects.sort((a, b) => {
-    // Primary: endDate (new -> old), treat "ongoing" (no endDate) as most recent
-    const endA = a.data.endDate?.getTime()
-    const endB = b.data.endDate?.getTime()
-    const endTimeA = endA ?? Number.POSITIVE_INFINITY
-    const endTimeB = endB ?? Number.POSITIVE_INFINITY
-    const endDiff = endTimeB - endTimeA
-    if (endDiff !== 0) return endDiff
+    const endA = a.data.endDate
+    const endB = b.data.endDate
+    const isOngoingA = !endA
+    const isOngoingB = !endB
 
-    // Secondary: startDate (new -> old)
+    // Case 1: both ongoing → sort by startDate (new → old)
+    if (isOngoingA && isOngoingB) {
+      const startA = a.data.startDate?.getTime() ?? 0
+      const startB = b.data.startDate?.getTime() ?? 0
+      if (startA !== startB) return startB - startA
+      const orderA = a.data.order ?? Infinity
+      const orderB = b.data.order ?? Infinity
+      return orderA - orderB || a.id.localeCompare(b.id)
+    }
+
+    // Case 2: only one ongoing → ongoing first
+    if (isOngoingA !== isOngoingB) {
+      return isOngoingA ? -1 : 1
+    }
+
+    // Case 3: both have endDate → endDate (new → old), then startDate, then order
+    const endTimeA = endA!.getTime()
+    const endTimeB = endB!.getTime()
+    if (endTimeA !== endTimeB) return endTimeB - endTimeA
+
     const startA = a.data.startDate?.getTime() ?? 0
     const startB = b.data.startDate?.getTime() ?? 0
-    const startDiff = startB - startA
-    if (startDiff !== 0) return startDiff
+    if (startA !== startB) return startB - startA
 
-    // Tertiary: order (low -> high)
     const orderA = a.data.order ?? Infinity
     const orderB = b.data.order ?? Infinity
-    const orderDiff = orderA - orderB
-    if (orderDiff !== 0) return orderDiff
-
-    return a.id.localeCompare(b.id)
+    return orderA - orderB || a.id.localeCompare(b.id)
   })
 }
 

@@ -2,24 +2,11 @@
 import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
 import PageHead from '@/components/posts/base/PageHead.astro'
 import ProjectCard from '@/components/projects/ProjectCard.astro'
-import PaginationComponent from '@/components/ui/pagination'
-import { SITE } from '@/config'
 import Layout from '@/layouts/Layout.astro'
 import { getAllProjects, groupProjectsByYear } from '@/lib/data-utils'
-import type { PaginateFunction } from 'astro'
 
-export async function getStaticPaths({
-  paginate,
-}: {
-  paginate: PaginateFunction
-}) {
-  const allProjects = await getAllProjects()
-  return paginate(allProjects, { pageSize: SITE.projectsPerPage })
-}
-
-const { page } = Astro.props
-
-const projectsByYear = groupProjectsByYear(page.data)
+const projects = await getAllProjects()
+const projectsByYear = groupProjectsByYear(projects)
 const years = Object.keys(projectsByYear).sort((a, b) => {
   if (a === 'Unknown') return 1
   if (b === 'Unknown') return -1
@@ -30,13 +17,10 @@ const years = Object.keys(projectsByYear).sort((a, b) => {
 <Layout class="max-w-3xl">
   <PageHead slot="head" title="Projects" />
   <Breadcrumbs
-    items={[
-      { label: 'Projects', href: '/projects', icon: 'lucide:briefcase' },
-      { label: `Page ${page.currentPage}`, icon: 'lucide:files' },
-    ]}
+    items={[{ label: 'Projects', href: '/projects', icon: 'lucide:briefcase' }]}
   />
 
-  <div class="flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
+  <section class="mt-8 flex min-h-[calc(100vh-18rem)] flex-col gap-y-8">
     {
       years.map((year) => (
         <section class="flex flex-col gap-y-4">
@@ -51,12 +35,5 @@ const years = Object.keys(projectsByYear).sort((a, b) => {
         </section>
       ))
     }
-  </div>
-
-  <PaginationComponent
-    currentPage={page.currentPage}
-    totalPages={page.lastPage}
-    baseUrl="/projects/"
-    client:load
-  />
+  </section>
 </Layout>

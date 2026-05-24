@@ -24,7 +24,6 @@ export const SITE: Site = {
   featuredPostCount: 3,
   featuredProjectCount: 3,
   postsPerPage: 6,
-  projectsPerPage: 3,
 }
 
 // Use https://realfavicongenerator.net/ to generate favicons
