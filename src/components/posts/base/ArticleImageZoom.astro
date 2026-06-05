@@ -1,0 +1,162 @@
+---
+---
+
+<script>
+  const selector = 'article.prose img:not(.no-zoom):not(a img)'
+  const margin = 24
+  const duration = 300
+  let activeImage: HTMLImageElement | null = null
+  let overlay: HTMLDivElement | null = null
+  let cleanupTimer: number | null = null
+  let pendingImage: HTMLImageElement | null = null
+  let pendingOverlay: HTMLDivElement | null = null
+
+  const getScale = (rect: DOMRect) => {
+    const maxWidth = window.innerWidth - margin * 2
+    const maxHeight = window.innerHeight - margin * 2
+    return Math.min(maxWidth / rect.width, maxHeight / rect.height)
+  }
+
+  const cleanupImage = (image: HTMLImageElement) => {
+    image.style.zIndex = ''
+    image.style.position = ''
+    image.style.willChange = ''
+  }
+
+  const cleanupOverlay = (targetOverlay: HTMLDivElement) => {
+    targetOverlay.remove()
+  }
+
+  const finishPendingCleanup = () => {
+    if (cleanupTimer) window.clearTimeout(cleanupTimer)
+    if (pendingImage) cleanupImage(pendingImage)
+    if (pendingOverlay) cleanupOverlay(pendingOverlay)
+
+    cleanupTimer = null
+    pendingImage = null
+    pendingOverlay = null
+  }
+
+  const closeZoom = (immediate = false) => {
+    if (!activeImage || !overlay) return
+
+    const image = activeImage
+    const currentOverlay = overlay
+
+    image.classList.remove('article-zoom-open')
+    image.style.transform = ''
+    currentOverlay.classList.remove('article-zoom-overlay-open')
+
+    if (immediate) {
+      finishPendingCleanup()
+      cleanupImage(image)
+      cleanupOverlay(currentOverlay)
+      activeImage = null
+      overlay = null
+      return
+    }
+
+    pendingImage = image
+    pendingOverlay = currentOverlay
+    cleanupTimer = window.setTimeout(() => {
+      finishPendingCleanup()
+    }, duration)
+
+    activeImage = null
+    overlay = null
+  }
+
+  const closeAnimated = () => closeZoom()
+
+  const openZoom = (image: HTMLImageElement) => {
+    if (activeImage === image) {
+      closeZoom()
+      return
+    }
+    finishPendingCleanup()
+    closeZoom(true)
+
+    const rect = image.getBoundingClientRect()
+    const scale = getScale(rect)
+    const x = window.innerWidth / 2 - (rect.left + rect.width / 2)
+    const y = window.innerHeight / 2 - (rect.top + rect.height / 2)
+
+    overlay = document.createElement('div')
+    overlay.className = 'article-zoom-overlay'
+    document.body.appendChild(overlay)
+    overlay.addEventListener('click', closeAnimated)
+
+    activeImage = image
+    image.style.position = 'relative'
+    image.style.zIndex = '1000'
+    image.style.willChange = 'transform'
+    image.classList.add('article-zoom-open')
+
+    requestAnimationFrame(() => {
+      overlay?.classList.add('article-zoom-overlay-open')
+      image.style.transform = `translate3d(${x}px, ${y}px, 0) scale(${scale})`
+    })
+  }
+
+  const handleClick = (event: MouseEvent) => {
+    const target = event.target
+    if (!(target instanceof HTMLImageElement) || !target.matches(selector)) return
+
+    event.preventDefault()
+    openZoom(target)
+  }
+
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') closeZoom()
+  }
+
+  const bindZoom = () => {
+    document.querySelectorAll<HTMLImageElement>(selector).forEach((image) => {
+      image.loading = 'eager'
+      image.decoding = 'sync'
+    })
+  }
+
+  document.addEventListener('click', handleClick)
+  document.addEventListener('astro:page-load', bindZoom)
+  document.addEventListener('astro:after-swap', bindZoom)
+  document.addEventListener('astro:before-swap', closeAnimated)
+  document.addEventListener('keydown', handleKeydown)
+  window.addEventListener('scroll', closeAnimated, { passive: true })
+  window.addEventListener('resize', closeAnimated, { passive: true })
+  bindZoom()
+</script>
+
+<style is:global>
+  article.prose img:not(.no-zoom):not(a img) {
+    cursor: zoom-in;
+    transform-origin: center center;
+    transition: transform 0.3s cubic-bezier(0.2, 0, 0.2, 1);
+  }
+
+  article.prose img.article-zoom-open {
+    cursor: zoom-out !important;
+  }
+
+  .article-zoom-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgb(0 0 0 / 0.8);
+    opacity: 0;
+    transition: opacity 0.3s;
+    will-change: opacity;
+    cursor: zoom-out;
+  }
+
+  .article-zoom-overlay-open {
+    opacity: 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    article.prose img:not(.no-zoom):not(a img),
+    .article-zoom-overlay {
+      transition: none;
+    }
+  }
+</style>
