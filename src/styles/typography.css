@@ -240,7 +240,7 @@
 
 @layer components {
   /* 让 Markdown 代码块复制提示的背景色跟随主题色 */
-  body .expressive-code {
+  body .expressive-code .copy .feedback {
     --ec-frm-tooltipSuccessBg: var(--accent);
     --ec-frm-tooltipSuccessFg: var(--accent-foreground);
   }
