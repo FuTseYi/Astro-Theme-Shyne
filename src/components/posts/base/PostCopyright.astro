@@ -15,6 +15,10 @@ const title = post.data.title || SITE.title
 const publishedAt = post.data.date ? formatDate(post.data.date) : 'Unknown'
 const canonicalUrl = new URL(Astro.url)
 canonicalUrl.protocol = 'https:'
+const canonicalUrlText = canonicalUrl.toString()
+const linkTailLength = 12
+const linkPrefix = canonicalUrlText.slice(0, -linkTailLength)
+const linkTail = canonicalUrlText.slice(-linkTailLength)
 ---
 
 <section
@@ -22,7 +26,7 @@ canonicalUrl.protocol = 'https:'
   class="border-border relative col-start-2 flex flex-col gap-y-2 overflow-hidden rounded-xl border px-3 py-2 sm:px-4 sm:py-3"
 >
   <div
-    class="text-muted-foreground/10 pointer-events-none absolute top-1/2 right-8 flex size-40 -translate-y-1/2 items-center justify-center rounded-full border-[16px] border-current font-sans text-6xl leading-none font-black tracking-[-0.18em] sm:right-12 sm:size-44 sm:text-7xl"
+    class="text-muted-foreground/10 pointer-events-none absolute top-1/2 -right-12 flex size-52 -translate-y-1/2 items-center justify-center rounded-full border-[18px] border-current font-sans text-7xl leading-none font-black tracking-[-0.18em] sm:-right-10 sm:size-56 sm:border-[20px] sm:text-8xl"
     aria-hidden="true"
   >
     <span class="translate-x-[-0.08em]">CC</span>
@@ -35,15 +39,16 @@ canonicalUrl.protocol = 'https:'
     >
       {title}
     </h2>
-    <div class="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-      <div class="text-muted-foreground min-w-0 break-all text-sm">
-        {canonicalUrl.toString()}
-      </div>
-      <span class="relative inline-flex shrink-0 items-center">
+    <div class="text-muted-foreground mt-0.5 min-w-0 break-all text-sm">
+      <span>
+        {linkPrefix}
+      </span>
+      <span class="relative inline-flex whitespace-nowrap align-middle">
+        <span>{linkTail}</span>
         <button
           type="button"
-          class="bg-muted text-muted-foreground hover:text-accent focus-visible:ring-ring/50 data-[copied=true]:text-accent inline-flex rounded-full p-1 transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
-          data-copy-post-link={canonicalUrl.toString()}
+          class="bg-muted text-muted-foreground hover:text-accent focus-visible:ring-ring/50 data-[copied=true]:text-accent ml-2 inline-flex rounded-full p-1 transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
+          data-copy-post-link={canonicalUrlText}
           aria-label="Copy article link"
         >
           <Icon name="lucide:link" class="size-4" aria-hidden="true" />
