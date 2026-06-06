@@ -1,0 +1,125 @@
+---
+import Link from '@/components/base/Link.astro'
+import { SITE } from '@/config'
+import { formatDate } from '@/lib/utils'
+import type { CollectionEntry } from 'astro:content'
+import { Icon } from 'astro-icon/components'
+
+interface Props {
+  post: CollectionEntry<'blog'>
+}
+
+const { post } = Astro.props
+
+const title = post.data.title || SITE.title
+const publishedAt = post.data.date ? formatDate(post.data.date) : 'Unknown'
+const canonicalUrl = new URL(Astro.url)
+canonicalUrl.protocol = 'https:'
+---
+
+<section
+  aria-labelledby="post-copyright-card-title"
+  class="border-border relative col-start-2 flex flex-col gap-y-2 overflow-hidden rounded-xl border px-3 py-2 sm:px-4 sm:py-3"
+>
+  <div
+    class="text-muted-foreground/10 pointer-events-none absolute top-1/2 right-8 flex size-40 -translate-y-1/2 items-center justify-center rounded-full border-[16px] border-current font-sans text-6xl leading-none font-black tracking-[-0.18em] sm:right-12 sm:size-44 sm:text-7xl"
+    aria-hidden="true"
+  >
+    <span class="translate-x-[-0.08em]">CC</span>
+  </div>
+
+  <div class="relative flex min-w-0 flex-col">
+    <h2
+      id="post-copyright-card-title"
+      class="text-foreground font-medium"
+    >
+      {title}
+    </h2>
+    <div class="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+      <div class="text-muted-foreground min-w-0 break-all text-sm">
+        {canonicalUrl.toString()}
+      </div>
+      <span class="relative inline-flex shrink-0 items-center">
+        <button
+          type="button"
+          class="bg-muted text-muted-foreground hover:text-accent focus-visible:ring-ring/50 data-[copied=true]:text-accent inline-flex rounded-full p-1 transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
+          data-copy-post-link={canonicalUrl.toString()}
+          aria-label="Copy article link"
+        >
+          <Icon name="lucide:link" class="size-4" aria-hidden="true" />
+        </button>
+        <span
+          class="bg-accent text-accent-foreground pointer-events-none absolute top-1/2 left-full z-10 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md px-2 py-1 text-xs opacity-0 shadow-sm transition-opacity data-[show=true]:opacity-100"
+          data-copy-toast
+        >
+          Link copied!
+        </span>
+      </span>
+    </div>
+  </div>
+
+  <dl
+    class="relative flex flex-row flex-wrap justify-start gap-x-5 gap-y-1 text-sm sm:gap-x-8"
+  >
+    <div class="flex min-w-0 gap-x-2 sm:flex-col">
+      <dt class="text-muted-foreground">Author</dt>
+      <dd class="text-foreground max-sm:place-self-center">{SITE.author}</dd>
+    </div>
+
+    <div class="flex min-w-0 gap-x-2 sm:min-w-16 sm:flex-col">
+      <dt class="text-muted-foreground">Published at</dt>
+      <dd class="text-foreground max-sm:place-self-center">{publishedAt}</dd>
+    </div>
+
+    <div class="flex min-w-0 gap-x-2 sm:flex-col">
+      <dt class="text-muted-foreground">Copyright</dt>
+      <dd class="max-sm:place-self-center">
+        <Link
+          href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+          class="text-foreground hover:text-accent"
+        >
+          CC BY-NC-SA 4.0
+        </Link>
+      </dd>
+    </div>
+  </dl>
+
+</section>
+
+<script>
+  const initPostCopyrightCopy = () => {
+    document
+      .querySelectorAll<HTMLButtonElement>('[data-copy-post-link]')
+      .forEach((button) => {
+        if (button.dataset.copyBound === 'true') return
+
+        button.dataset.copyBound = 'true'
+        const originalLabel = button.getAttribute('aria-label') || 'Copy link'
+
+        button.addEventListener('click', async () => {
+          const link = button.dataset.copyPostLink
+          if (!link) return
+          const toast = button.parentElement?.querySelector<HTMLElement>(
+            '[data-copy-toast]',
+          )
+
+          try {
+            await navigator.clipboard.writeText(link)
+            button.setAttribute('aria-label', 'Copied')
+            button.dataset.copied = 'true'
+            if (toast) toast.dataset.show = 'true'
+            window.setTimeout(() => {
+              button.setAttribute('aria-label', originalLabel)
+              delete button.dataset.copied
+              if (toast) delete toast.dataset.show
+            }, 1400)
+          } catch {
+            button.setAttribute('aria-label', originalLabel)
+          }
+        })
+      })
+  }
+
+  document.addEventListener('astro:page-load', initPostCopyrightCopy)
+  initPostCopyrightCopy()
+</script>

@@ -2,6 +2,7 @@
 import Breadcrumbs from '@/components/base/Breadcrumbs.astro'
 import ArticleImageZoom from '@/components/posts/base/ArticleImageZoom.astro'
 import PostHead from '@/components/posts/base/PostHead.astro'
+import PostCopyright from '@/components/posts/base/PostCopyright.astro'
 import PostNavigation from '@/components/posts/base/PostNavigation.astro'
 import SubpostsHeader from '@/components/posts/base/SubpostsHeader.astro'
 import SubpostsSidebar from '@/components/posts/base/SubpostsSidebar.astro'
@@ -189,6 +190,8 @@ const formattedDate = post.data.date ? formatDate(post.data.date) : ''
         )
       }
     </section>
+
+    <PostCopyright post={post} />
 
     <PostNavigation
       newerPost={navigation.newer}
