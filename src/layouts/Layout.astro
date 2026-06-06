@@ -478,8 +478,8 @@ const { class: className } = Astro.props
       #main-header #mobile-toc-container > details > summary,
       #main-header #mobile-subposts-container [data-subposts-header-scroll],
       #main-header #mobile-toc-container [data-toc-header-scroll],
-      #main-header #mobile-subposts-container [data-radix-scroll-area-viewport],
-      #main-header #mobile-toc-container [data-radix-scroll-area-viewport] {
+      #main-header #mobile-subposts-container [data-scroll-area-viewport],
+      #main-header #mobile-toc-container [data-scroll-area-viewport] {
         background-color: transparent;
       }
 
@@ -526,9 +526,9 @@ const { class: className } = Astro.props
 
       #main-header
         #mobile-subposts-container
-        [data-radix-scroll-area-viewport]
+        [data-scroll-area-viewport]
         ul,
-      #main-header #mobile-toc-container [data-radix-scroll-area-viewport] ul {
+      #main-header #mobile-toc-container [data-scroll-area-viewport] ul {
         padding-inline: 0.75rem;
         padding-bottom: 0.75rem;
       }
@@ -559,11 +559,11 @@ const { class: className } = Astro.props
       #main-header
         #mobile-subposts-container
         > details[open]
-        [data-radix-scroll-area-viewport],
+        [data-scroll-area-viewport],
       #main-header
         #mobile-toc-container
         > details[open]
-        [data-radix-scroll-area-viewport],
+        [data-scroll-area-viewport],
       #main-header #mobile-subposts-container > details[open] ul,
       #main-header #mobile-toc-container > details[open] ul {
         background-color: var(--background);
@@ -601,12 +601,12 @@ const { class: className } = Astro.props
         #main-header
         #mobile-subposts-container
         > details[open]
-        [data-radix-scroll-area-viewport],
+        [data-scroll-area-viewport],
       [data-theme='dark']
         #main-header
         #mobile-toc-container
         > details[open]
-        [data-radix-scroll-area-viewport],
+        [data-scroll-area-viewport],
       [data-theme='dark']
         #main-header
         #mobile-subposts-container

@@ -1,5 +1,4 @@
 ---
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn, getTOCLevelClass } from '@/lib/utils'
 import type { MarkdownHeading } from 'astro'
 import { Icon } from 'astro-icon/components'
@@ -67,37 +66,35 @@ const getDisplayDepth = (depth: number) =>
 
         <div data-header-collapsible-content>
           <div class="min-h-0 overflow-hidden">
-            <ScrollArea
-              client:load
-              className="mx-auto max-w-3xl"
+            <div
+              class="mx-auto max-h-[30vh] max-w-3xl overflow-y-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              data-scroll-area-viewport
               data-toc-header-scroll
             >
-              <div class="max-h-[30vh]">
-                <ul
-                  class="flex list-none flex-col gap-y-2 px-4 pb-4"
-                  id="mobile-table-of-contents"
-                >
-                  {headings.map((heading) => (
-                    <li
-                      data-mobile-toc-item
-                      data-heading-depth={getDisplayDepth(heading.depth)}
-                      class={cn(
-                        'border-border/40 relative border-l py-0.5 pr-4 pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
-                        getTOCLevelClass(getDisplayDepth(heading.depth)),
-                      )}
+              <ul
+                class="flex list-none flex-col gap-y-2 px-4 pb-4"
+                id="mobile-table-of-contents"
+              >
+                {headings.map((heading) => (
+                  <li
+                    data-mobile-toc-item
+                    data-heading-depth={getDisplayDepth(heading.depth)}
+                    class={cn(
+                      'border-border/40 relative border-l py-0.5 pr-4 pl-3 transition-colors before:absolute before:top-1 before:bottom-1 before:left-[-1px] before:w-0.5 before:rounded-full before:bg-transparent',
+                      getTOCLevelClass(getDisplayDepth(heading.depth)),
+                    )}
+                  >
+                    <a
+                      href={`#${heading.slug}`}
+                      class="mobile-toc-item focus-visible:ring-ring block rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
+                      data-heading-id={heading.slug}
                     >
-                      <a
-                        href={`#${heading.slug}`}
-                        class="mobile-toc-item focus-visible:ring-ring block rounded-sm px-1 py-0.5 leading-snug [overflow-wrap:anywhere] break-words whitespace-normal underline decoration-transparent underline-offset-[3px] transition-colors duration-200 hover:decoration-inherit focus-visible:ring-2 focus-visible:outline-none"
-                        data-heading-id={heading.slug}
-                      >
-                        {heading.text}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </ScrollArea>
+                      {heading.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </details>
@@ -152,7 +149,7 @@ const getDisplayDepth = (depth: number) =>
       this.listElement = document.getElementById('mobile-table-of-contents')
       const tocContainer = document.getElementById('mobile-toc-container')
       this.scrollArea =
-        tocContainer?.querySelector('[data-radix-scroll-area-viewport]') || null
+        tocContainer?.querySelector('[data-scroll-area-viewport]') || null
       this.headings = []
       this.contentStartTop = 0
       this.activeIds = []
@@ -581,10 +578,6 @@ const getDisplayDepth = (depth: number) =>
   }
 
   if (tocWindow.__shyneMobileTOC) {
-    window.removeEventListener(
-      'scroll-area-hydrated',
-      tocWindow.__shyneMobileTOC.init,
-    )
     document.removeEventListener(
       'astro:page-load',
       tocWindow.__shyneMobileTOC.init,
@@ -607,7 +600,6 @@ const getDisplayDepth = (depth: number) =>
 
   tocWindow.__shyneMobileTOC = lifecycle
 
-  window.addEventListener('scroll-area-hydrated', lifecycle.init)
   document.addEventListener('astro:page-load', lifecycle.init)
   document.addEventListener('astro:after-swap', lifecycle.init)
   document.addEventListener('astro:before-swap', lifecycle.cleanup)
