@@ -47,18 +47,31 @@ const linkTail = canonicalUrlText.slice(-linkTailLength)
         <span>{linkTail}</span>
         <button
           type="button"
-          class="bg-muted text-muted-foreground hover:text-accent focus-visible:ring-ring/50 data-[copied=true]:text-accent ml-2 inline-flex rounded-full p-1 transition-colors focus-visible:ring-[3px] focus-visible:outline-none"
+          class="bg-muted text-muted-foreground hover:text-accent focus-visible:ring-ring/50 data-[copied=true]:bg-accent/10 data-[copied=true]:text-accent data-[copied=true]:ring-accent/20 relative ml-2 inline-grid rounded-full p-1 transition-[background-color,color,box-shadow,transform] duration-200 data-[copied=true]:scale-105 data-[copied=true]:ring-2 focus-visible:ring-[3px] focus-visible:outline-none"
           data-copy-post-link={canonicalUrlText}
           aria-label="Copy article link"
         >
-          <Icon name="lucide:link" class="size-4" aria-hidden="true" />
+          <span
+            class="border-accent absolute inset-0 rounded-full border opacity-0 data-[copied=true]:animate-[copy-confirm_700ms_ease-out]"
+            data-copy-confirm-ring
+            data-copy-confirm-part
+            aria-hidden="true"
+          ></span>
+          <Icon
+            name="lucide:link"
+            class="col-start-1 row-start-1 size-4 transition-all duration-150 data-[copied=true]:scale-90 data-[copied=true]:opacity-0"
+            data-copy-link-icon
+            data-copy-confirm-part
+            aria-hidden="true"
+          />
+          <Icon
+            name="lucide:check"
+            class="col-start-1 row-start-1 size-4 scale-90 opacity-0 transition-all duration-150 data-[copied=true]:scale-100 data-[copied=true]:opacity-100"
+            data-copy-check-icon
+            data-copy-confirm-part
+            aria-hidden="true"
+          />
         </button>
-        <span
-          class="bg-accent text-accent-foreground pointer-events-none absolute top-1/2 left-full z-10 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md px-2 py-1 text-xs opacity-0 shadow-sm transition-opacity data-[show=true]:opacity-100"
-          data-copy-toast
-        >
-          Link copied!
-        </span>
       </span>
     </div>
   </div>
@@ -91,6 +104,19 @@ const linkTail = canonicalUrlText.slice(-linkTailLength)
 
 </section>
 
+<style>
+  @keyframes copy-confirm {
+    0% {
+      opacity: 0.45;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(1.8);
+    }
+  }
+</style>
+
 <script>
   const initPostCopyrightCopy = () => {
     document
@@ -104,20 +130,23 @@ const linkTail = canonicalUrlText.slice(-linkTailLength)
         button.addEventListener('click', async () => {
           const link = button.dataset.copyPostLink
           if (!link) return
-          const toast = button.parentElement?.querySelector<HTMLElement>(
-            '[data-copy-toast]',
-          )
 
           try {
             await navigator.clipboard.writeText(link)
             button.setAttribute('aria-label', 'Copied')
             button.dataset.copied = 'true'
-            if (toast) toast.dataset.show = 'true'
+            button.querySelectorAll('[data-copy-confirm-part]').forEach((el) => {
+              el.setAttribute('data-copied', 'true')
+            })
             window.setTimeout(() => {
               button.setAttribute('aria-label', originalLabel)
               delete button.dataset.copied
-              if (toast) delete toast.dataset.show
-            }, 1400)
+              button
+                .querySelectorAll('[data-copy-confirm-part]')
+                .forEach((el) => {
+                  el.removeAttribute('data-copied')
+                })
+            }, 800)
           } catch {
             button.setAttribute('aria-label', originalLabel)
           }
