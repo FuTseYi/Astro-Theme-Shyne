@@ -2,6 +2,16 @@
 import { SITE } from '@/config'
 import { ClientRouter } from 'astro:transitions'
 import Favicons from './Favicons.astro'
+
+const consoleBadge = 'Astro Theme Shyne'
+const consoleUrl = 'https://github.com/FuTseYi/Astro-Theme-Shyne'
+const consoleBadgeStyle =
+  'color:#fff;background:linear-gradient(90deg,#111827,#2563eb);padding:5px 0 5px 8px;border-radius:4px 0 0 4px;font-weight:600;'
+const consoleUrlStyle =
+  'color:#111827;background:linear-gradient(90deg,#93c5fd,#f8fafc);padding:5px 8px 5px 0;border-radius:0 4px 4px 0;'
+const consoleSignatureScript = `console.log(${JSON.stringify(
+  `%c ${consoleBadge} %c ${consoleUrl} `,
+)},${JSON.stringify(consoleBadgeStyle)},${JSON.stringify(consoleUrlStyle)})`
 ---
 
 <head>
@@ -43,6 +53,12 @@ import Favicons from './Favicons.astro'
 
   <Favicons />
   <ClientRouter />
+
+  {
+    import.meta.env.PROD && (
+      <script is:inline set:html={consoleSignatureScript} />
+    )
+  }
 
   <slot />
 </head>
